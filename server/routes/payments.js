@@ -63,10 +63,10 @@ router.post('/create-payment-intent', auth, [
       await User.findByIdAndUpdate(req.user._id, { stripeCustomerId: customerId });
     }
 
-    // Create payment intent
+    // Create payment intent (Finland - Euro)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
-      currency: 'usd',
+      currency: 'eur',
       customer: customerId,
       metadata: {
         productId: productId,

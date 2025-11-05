@@ -1,6 +1,6 @@
-# Mart - C2C Marketplace Platform
+# Mart - C2C Marketplace Platform (Finland)
 
-A complete consumer-to-consumer marketplace platform built with the MERN stack, allowing users to buy and sell new products with secure payment processing.
+A complete consumer-to-consumer marketplace platform built with the MERN stack, designed for Finland. Users can buy and sell new products with secure payment processing in Euros (€).
 
 ## 🚀 Features
 
@@ -9,7 +9,9 @@ A complete consumer-to-consumer marketplace platform built with the MERN stack, 
 - **Product Management**: Create, edit, delete, and manage product listings
 - **Product Browsing**: Advanced search, filtering, and categorization
 - **Admin Panel**: Complete admin dashboard for managing products, users, and orders
-- **Payment Processing**: Stripe integration for secure payments
+- **Payment Processing**: Stripe integration for secure payments in Euros (€)
+- **Finland Only**: Marketplace available exclusively in Finland
+- **Finnish Localization**: All prices in Euros, Finnish postal codes, and location support
 - **Order Management**: Track orders from creation to delivery
 - **Image Upload**: Cloudinary integration for product images
 - **Responsive Design**: Mobile-first design with Tailwind CSS

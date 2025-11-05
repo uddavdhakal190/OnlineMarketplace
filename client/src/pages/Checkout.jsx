@@ -117,26 +117,37 @@ const Checkout = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Input
                       label="City"
+                      placeholder="e.g., Helsinki"
                       {...register('city', { required: 'City is required' })}
                       error={errors.city?.message}
                     />
                     <Input
-                      label="State"
-                      {...register('state', { required: 'State is required' })}
+                      label="State/Region"
+                      placeholder="e.g., Uusimaa"
+                      {...register('state', { required: 'State/Region is required' })}
                       error={errors.state?.message}
                     />
                     <Input
-                      label="ZIP Code"
-                      {...register('zipCode', { required: 'ZIP code is required' })}
+                      label="Postal Code"
+                      placeholder="e.g., 00100"
+                      {...register('zipCode', { 
+                        required: 'Postal code is required',
+                        pattern: {
+                          value: /^\d{5}$/,
+                          message: 'Finnish postal code must be 5 digits (e.g., 00100)'
+                        }
+                      })}
                       error={errors.zipCode?.message}
                     />
                   </div>
                   
                   <Input
                     label="Country"
+                    defaultValue="Finland"
                     {...register('country', { required: 'Country is required' })}
                     error={errors.country?.message}
                   />
+                  <p className="text-xs text-gray-500 mt-1">Currently available only in Finland</p>
                 </div>
               </Card>
 
@@ -157,7 +168,7 @@ const Checkout = () => {
                   
                   <div className="text-sm text-gray-500">
                     <p>Your payment information is encrypted and secure.</p>
-                    <p>We accept Visa, Mastercard, American Express, and more.</p>
+                    <p>All payments are processed in Euros (€). We accept Visa, Mastercard, American Express, and more.</p>
                   </div>
                 </div>
               </Card>
@@ -204,8 +215,8 @@ const Checkout = () => {
                     <span className="text-gray-900">Free</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="text-gray-900">$0.00</span>
+                    <span className="text-gray-600">Tax (VAT included)</span>
+                    <span className="text-gray-900">{formatCurrency(0)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-semibold border-t border-gray-200 pt-2">
                     <span>Total</span>

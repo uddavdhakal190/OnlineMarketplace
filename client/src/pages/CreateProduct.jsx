@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Upload, X, Plus } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { productsAPI } from '../utils/api'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -32,7 +34,33 @@ const CreateProduct = () => {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
-    const newImages = files.map(file => ({
+    
+    // Validate files
+    const validFiles = files.filter(file => {
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} is not an image file`)
+        return false
+      }
+      
+      // Check file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is too large. Maximum size is 5MB`)
+        return false
+      }
+      
+      return true
+    })
+    
+    if (validFiles.length === 0) return
+    
+    // Check total image count
+    if (images.length + validFiles.length > 5) {
+      toast.error('Maximum 5 images allowed')
+      return
+    }
+    
+    const newImages = validFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file)
     }))
@@ -46,14 +74,54 @@ const CreateProduct = () => {
   const onSubmit = async (data) => {
     setIsSubmitting(true)
     try {
-      // TODO: Implement product creation
-      console.log('Product data:', data)
-      console.log('Images:', images)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Create FormData for file upload
+      const formData = new FormData()
+      
+      // Add text fields
+      formData.append('title', data.title)
+      formData.append('description', data.description)
+      formData.append('price', data.price)
+      formData.append('category', data.category)
+      formData.append('condition', data.condition || 'New')
+      
+      // Add location (use dot notation for nested objects)
+      if (data.location) {
+        if (data.location.city) formData.append('location.city', data.location.city)
+        if (data.location.state) formData.append('location.state', data.location.state)
+        formData.append('location.country', data.location.country || 'Finland')
+      }
+      
+      // Add images
+      if (images.length === 0) {
+        toast.error('Please upload at least one product image')
+        setIsSubmitting(false)
+        return
+      }
+      
+      images.forEach((image) => {
+        formData.append('images', image.file)
+      })
+      
+      // Create product
+      const response = await productsAPI.createProduct(formData)
+      
+      toast.success('Product created successfully! It will be reviewed by admin.')
       navigate('/my-products')
     } catch (error) {
       console.error('Error creating product:', error)
+      console.error('Error response:', error.response?.data)
+      
+      // Get error message from response
+      let message = 'Failed to create product. Please try again.'
+      if (error.response?.data?.message) {
+        message = error.response.data.message
+      } else if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        message = error.response.data.errors.map(e => e.msg || e.message).join(', ')
+      } else if (error.message) {
+        message = error.message
+      }
+      
+      toast.error(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -177,19 +245,28 @@ const CreateProduct = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
                 label="City"
-                placeholder="Enter city"
-                {...register('location.city')}
+                placeholder="e.g., Helsinki"
+                defaultValue=""
+                {...register('location.city', { 
+                  required: 'City is required',
+                  validate: value => value.trim() !== '' || 'Please enter a city in Finland'
+                })}
               />
               <Input
-                label="State"
-                placeholder="Enter state"
+                label="State/Region"
+                placeholder="e.g., Uusimaa"
+                defaultValue=""
                 {...register('location.state')}
               />
               <Input
                 label="Country"
-                placeholder="Enter country"
-                {...register('location.country')}
+                placeholder="Finland"
+                defaultValue="Finland"
+                {...register('location.country', { 
+                  required: true 
+                })}
               />
+              <p className="text-xs text-gray-500 mt-1">This marketplace is only available in Finland</p>
             </div>
           </Card>
 

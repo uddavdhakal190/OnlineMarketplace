@@ -51,7 +51,7 @@ const Register = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center">
-            <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-2xl">M</span>
             </div>
           </div>
@@ -62,7 +62,7 @@ const Register = () => {
             Or{' '}
             <Link
               to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-blue-600 hover:text-blue-500"
             >
               sign in to your existing account
             </Link>
@@ -91,34 +91,30 @@ const Register = () => {
 
               <div>
                 <Input
-                  label="Email address"
+                  label="Email address (Gmail only)"
                   type="email"
                   autoComplete="email"
-                  placeholder="Enter your email"
+                  placeholder="yourname@gmail.com"
                   error={errors.email?.message}
                   {...register('email', {
                     required: 'Email is required',
                     pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address'
+                      value: /^[a-zA-Z0-9._%+-]+@gmail\.com$/i,
+                      message: 'Please use a Gmail address (e.g., yourname@gmail.com)'
                     }
                   })}
                 />
+                <p className="text-xs text-gray-500 mt-1">Only Gmail addresses are accepted</p>
               </div>
 
               <div>
                 <Input
-                  label="Phone Number"
+                  label="Phone Number (Optional)"
                   type="tel"
                   autoComplete="tel"
-                  placeholder="Enter your phone number"
+                  placeholder="Enter your phone number (optional)"
                   error={errors.phone?.message}
-                  {...register('phone', {
-                    pattern: {
-                      value: /^[\+]?[1-9][\d]{0,15}$/,
-                      message: 'Invalid phone number'
-                    }
-                  })}
+                  {...register('phone')}
                 />
               </div>
 
@@ -136,7 +132,7 @@ const Register = () => {
                     />
                     <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                       watch('role') === 'buyer' 
-                        ? 'border-primary-500 bg-primary-50' 
+                        ? 'border-blue-500 bg-blue-50' 
                         : 'border-gray-300 hover:border-gray-400'
                     }`}>
                       <div className="text-center">
@@ -156,7 +152,7 @@ const Register = () => {
                     />
                     <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                       watch('role') === 'seller' 
-                        ? 'border-primary-500 bg-primary-50' 
+                        ? 'border-blue-500 bg-blue-50' 
                         : 'border-gray-300 hover:border-gray-400'
                     }`}>
                       <div className="text-center">
@@ -237,15 +233,15 @@ const Register = () => {
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
                 I agree to the{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-500">
+                <a href="#" className="text-blue-600 hover:text-blue-500">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-500">
+                <a href="#" className="text-blue-600 hover:text-blue-500">
                   Privacy Policy
                 </a>
               </label>
@@ -271,7 +267,7 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-6">
               <Button
                 type="button"
                 variant="outline"
@@ -296,19 +292,7 @@ const Register = () => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                Google
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                disabled
-              >
-                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                Facebook
+                Sign up with Google
               </Button>
             </div>
           </div>

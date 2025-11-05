@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { Plus, Edit, Trash2, Eye, MoreVertical } from 'lucide-react'
-import { productsAPI } from '../utils/api'
+import { usersAPI } from '../utils/api'
 import { formatCurrency, formatRelativeTime, getStatusColor } from '../utils/helpers'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -13,7 +13,7 @@ const MyProducts = () => {
 
   const { data, isLoading, refetch } = useQuery(
     ['my-products', statusFilter],
-    () => productsAPI.getMyProducts({ 
+    () => usersAPI.getMyProducts({ 
       status: statusFilter === 'all' ? undefined : statusFilter 
     }),
     {

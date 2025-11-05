@@ -1,11 +1,12 @@
+import { forwardRef } from 'react'
 import { cn } from '../../utils/helpers'
 
-const Input = ({ 
+const Input = forwardRef(({ 
   label, 
   error, 
   className = '', 
   ...props 
-}) => {
+}, ref) => {
   return (
     <div className="space-y-1">
       {label && (
@@ -14,6 +15,7 @@ const Input = ({
         </label>
       )}
       <input
+        ref={ref}
         className={cn(
           'input',
           error && 'border-red-300 focus:ring-red-500 focus:border-red-500',
@@ -26,6 +28,8 @@ const Input = ({
       )}
     </div>
   )
-}
+})
+
+Input.displayName = 'Input'
 
 export default Input

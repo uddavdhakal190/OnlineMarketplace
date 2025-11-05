@@ -9,12 +9,25 @@ export const api = axios.create({
   },
 })
 
+// Helper to create FormData upload request
+const createFormDataRequest = (method, url, formData, token) => {
+  const headers = {
+    'Authorization': `Bearer ${token}`
+    // Don't set Content-Type - browser will set it with boundary
+  }
+  return axios({ method, url: `${API_BASE_URL}${url}`, data: formData, headers })
+}
+
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    }
+    // Don't set Content-Type for FormData - let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
     }
     return config
   },
@@ -46,8 +59,17 @@ export const authAPI = {
 export const productsAPI = {
   getProducts: (params) => api.get('/products', { params }),
   getProduct: (id) => api.get(`/products/${id}`),
-  createProduct: (data) => api.post('/products', data),
-  updateProduct: (id, data) => api.put(`/products/${id}`, data),
+  createProduct: (formData) => {
+    const token = localStorage.getItem('token')
+    return createFormDataRequest('post', '/products', formData, token)
+  },
+  updateProduct: (id, data) => {
+    if (data instanceof FormData) {
+      const token = localStorage.getItem('token')
+      return createFormDataRequest('put', `/products/${id}`, data, token)
+    }
+    return api.put(`/products/${id}`, data)
+  },
   deleteProduct: (id) => api.delete(`/products/${id}`),
   getMyProducts: (params) => api.get('/products/seller/my-products', { params }),
 }

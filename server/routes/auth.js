@@ -18,17 +18,26 @@ const generateToken = (userId) => {
 // @access  Public
 router.post('/register', [
   body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
-  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email address'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
   body('role').optional().isIn(['buyer', 'seller']).withMessage('Role must be either buyer or seller')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorMessages = errors.array().map(err => err.msg).join(', ');
+      return res.status(400).json({ message: errorMessages });
     }
 
     const { name, email, password, role = 'buyer', phone, address } = req.body;
+
+    // Simple email check - prefer Gmail but allow others
+    if (!email.toLowerCase().includes('@gmail.com')) {
+      return res.status(400).json({ message: 'Please use a Gmail address (e.g., yourname@gmail.com)' });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -65,7 +74,7 @@ router.post('/register', [
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(500).json({ message: error.message || 'Server error during registration' });
   }
 });
 
@@ -79,7 +88,8 @@ router.post('/login', [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorMessages = errors.array().map(err => err.msg).join(', ');
+      return res.status(400).json({ message: errorMessages });
     }
 
     const { email, password } = req.body;
@@ -87,18 +97,18 @@ router.post('/login', [
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid email or password' });
     }
 
     // Check if account is active
     if (!user.isActive) {
-      return res.status(400).json({ message: 'Account is deactivated' });
+      return res.status(400).json({ message: 'Account is deactivated. Please contact support.' });
     }
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid email or password' });
     }
 
     // Generate token
@@ -119,7 +129,7 @@ router.post('/login', [
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(500).json({ message: error.message || 'Server error during login' });
   }
 });
 

@@ -5,17 +5,17 @@ export const cn = (...inputs) => {
   return clsx(inputs)
 }
 
-// Format currency
+// Format currency (Finland - Euro)
 export const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('fi-FI', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'EUR',
   }).format(amount)
 }
 
-// Format date
+// Format date (Finland locale)
 export const formatDate = (date) => {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('fi-FI', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

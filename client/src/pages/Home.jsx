@@ -75,8 +75,8 @@ const Home = () => {
     },
     {
       icon: <Users className="h-6 w-6" />,
-      title: 'Community Driven',
-      description: 'Connect with local sellers and buyers in your community'
+      title: 'Finland Marketplace',
+      description: 'Connect with sellers and buyers across Finland'
     }
   ]
 
@@ -96,8 +96,8 @@ const Home = () => {
               Buy & Sell New Products
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-              Discover amazing new products from verified sellers in your community. 
-              Safe, secure, and simple.
+              Discover amazing new products from verified sellers across Finland. 
+              Safe, secure, and simple. All prices in Euros (€).
             </p>
             
             {/* Search Bar */}
@@ -112,7 +112,7 @@ const Home = () => {
                 />
                 <button
                   type="submit"
-                  className="absolute right-2 top-2 bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700 transition-colors"
+                  className="absolute right-2 top-2 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <Search className="h-6 w-6" />
                 </button>
@@ -121,12 +121,12 @@ const Home = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/products">
-                <Button size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
                   Browse Products
                 </Button>
               </Link>
               <Link to="/register">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-600">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
                   Start Selling
                 </Button>
               </Link>
@@ -142,7 +142,7 @@ const Home = () => {
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="flex justify-center mb-4">
-                  <div className="p-3 bg-primary-100 rounded-full text-primary-600">
+                  <div className="p-3 bg-blue-100 rounded-full text-blue-600">
                     {stat.icon}
                   </div>
                 </div>
@@ -169,7 +169,7 @@ const Home = () => {
                 to={`/products?category=${encodeURIComponent(category.name)}`}
                 className="group"
               >
-                <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer group-hover:border-primary-300">
+                <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer group-hover:border-blue-300">
                   <div className="text-4xl mb-3">{category.icon}</div>
                   <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
                   <p className="text-sm text-gray-500">{category.count} items</p>
@@ -252,7 +252,7 @@ const Home = () => {
             {features.map((feature, index) => (
               <div key={index} className="text-center">
                 <div className="flex justify-center mb-4">
-                  <div className="p-3 bg-primary-100 rounded-full text-primary-600">
+                  <div className="p-3 bg-blue-100 rounded-full text-blue-600">
                     {feature.icon}
                   </div>
                 </div>
@@ -275,12 +275,12 @@ const Home = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/register">
-              <Button size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
                 Get Started Today
               </Button>
             </Link>
             <Link to="/products">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-600">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
                 Browse Products
               </Button>
             </Link>
@@ -304,10 +304,10 @@ const ProductCard = ({ product }) => {
           />
         </div>
         <Card.Content>
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
             {product.title}
           </h3>
-          <p className="text-2xl font-bold text-primary-600 mb-2">
+          <p className="text-2xl font-bold text-blue-600 mb-2">
             {formatCurrency(product.price)}
           </p>
           <div className="flex items-center justify-between text-sm text-gray-500">

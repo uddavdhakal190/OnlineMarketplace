@@ -98,10 +98,10 @@ export const AuthProvider = ({ children }) => {
         payload: { user, token }
       })
       
-      toast.success('Login successful!')
+      toast.success(`Welcome back, ${user.name}!`)
       return { success: true }
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed'
+      const message = error.response?.data?.message || error.message || 'Login failed. Please check your credentials.'
       dispatch({ type: 'AUTH_FAILURE', payload: message })
       toast.error(message)
       return { success: false, error: message }
@@ -120,10 +120,10 @@ export const AuthProvider = ({ children }) => {
         payload: { user, token }
       })
       
-      toast.success('Registration successful!')
+      toast.success('Registration successful! Welcome to Mart!')
       return { success: true }
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed'
+      const message = error.response?.data?.message || error.message || 'Registration failed. Please try again.'
       dispatch({ type: 'AUTH_FAILURE', payload: message })
       toast.error(message)
       return { success: false, error: message }

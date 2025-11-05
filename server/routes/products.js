@@ -9,22 +9,8 @@ const router = express.Router();
 // @route   GET /api/products
 // @desc    Get all products with filtering and pagination
 // @access  Public
-router.get('/', [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
-  query('category').optional().isString().withMessage('Category must be a string'),
-  query('minPrice').optional().isFloat({ min: 0 }).withMessage('Min price must be a positive number'),
-  query('maxPrice').optional().isFloat({ min: 0 }).withMessage('Max price must be a positive number'),
-  query('search').optional().isString().withMessage('Search must be a string'),
-  query('sortBy').optional().isIn(['price', 'createdAt', 'viewCount']).withMessage('Invalid sort field'),
-  query('sortOrder').optional().isIn(['asc', 'desc']).withMessage('Sort order must be asc or desc')
-], async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const {
       page = 1,
       limit = 12,
@@ -36,17 +22,37 @@ router.get('/', [
       sortOrder = 'desc'
     } = req.query;
 
+    // Clean empty query parameters
+    const cleanCategory = category && category.trim() !== '' ? category : undefined;
+    const cleanSearch = search && search.trim() !== '' ? search : undefined;
+    
+    // Parse and validate numeric values
+    let cleanMinPrice = undefined;
+    let cleanMaxPrice = undefined;
+    if (minPrice && minPrice.trim() !== '') {
+      const parsed = parseFloat(minPrice);
+      if (!isNaN(parsed) && parsed >= 0) cleanMinPrice = parsed;
+    }
+    if (maxPrice && maxPrice.trim() !== '') {
+      const parsed = parseFloat(maxPrice);
+      if (!isNaN(parsed) && parsed >= 0) cleanMaxPrice = parsed;
+    }
+    
+    // Validate pagination
+    const pageNum = parseInt(page) || 1;
+    const limitNum = Math.min(parseInt(limit) || 12, 50);
+
     // Build filter object
     const filter = { status: 'approved', isAvailable: true };
 
-    if (category) filter.category = category;
-    if (minPrice || maxPrice) {
+    if (cleanCategory) filter.category = cleanCategory;
+    if (cleanMinPrice || cleanMaxPrice) {
       filter.price = {};
-      if (minPrice) filter.price.$gte = parseFloat(minPrice);
-      if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+      if (cleanMinPrice) filter.price.$gte = cleanMinPrice;
+      if (cleanMaxPrice) filter.price.$lte = cleanMaxPrice;
     }
-    if (search) {
-      filter.$text = { $search: search };
+    if (cleanSearch) {
+      filter.$text = { $search: cleanSearch };
     }
 
     // Build sort object
@@ -54,14 +60,14 @@ router.get('/', [
     sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
     // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     // Get products
     const products = await Product.find(filter)
       .populate('seller', 'name email phone')
       .sort(sort)
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(limitNum);
 
     // Get total count for pagination
     const total = await Product.countDocuments(filter);
@@ -69,11 +75,11 @@ router.get('/', [
     res.json({
       products,
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
+        currentPage: pageNum,
+        totalPages: Math.ceil(total / limitNum),
         totalProducts: total,
         hasNext: skip + products.length < total,
-        hasPrev: parseInt(page) > 1
+        hasPrev: pageNum > 1
       }
     });
   } catch (error) {
@@ -108,35 +114,42 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/products
 // @desc    Create a new product
 // @access  Private (Seller)
-router.post('/', auth, sellerAuth, upload.array('images', 5), handleUploadError, [
-  body('title').trim().isLength({ min: 5, max: 100 }).withMessage('Title must be between 5 and 100 characters'),
-  body('description').trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be between 10 and 1000 characters'),
-  body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('category').isIn([
-    'Electronics', 'Fashion', 'Home & Garden', 'Sports & Outdoors',
-    'Books & Media', 'Toys & Games', 'Health & Beauty', 'Automotive', 'Other'
-  ]).withMessage('Invalid category'),
-  body('condition').optional().isIn(['New', 'Like New', 'Good', 'Fair']).withMessage('Invalid condition'),
-  body('location.city').optional().isString().withMessage('City must be a string'),
-  body('location.state').optional().isString().withMessage('State must be a string'),
-  body('location.country').optional().isString().withMessage('Country must be a string'),
-  body('tags').optional().isArray().withMessage('Tags must be an array')
-], async (req, res) => {
+router.post('/', auth, sellerAuth, upload.array('images', 5), handleUploadError, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
+    console.log('Received FormData fields:', Object.keys(req.body));
+    console.log('Files received:', req.files?.length || 0);
+    
+    // Parse FormData fields
     const {
       title,
       description,
       price,
       category,
       condition = 'New',
-      location,
       tags = []
     } = req.body;
+
+    // Parse location from FormData (comes as location.city, location.state, etc.)
+    const location = {};
+    if (req.body['location.city']) location.city = req.body['location.city'];
+    if (req.body['location.state']) location.state = req.body['location.state'];
+    if (req.body['location.country']) location.country = req.body['location.country'];
+
+    // Simple validation (since FormData validation is tricky)
+    if (!title || title.trim().length < 5 || title.trim().length > 100) {
+      return res.status(400).json({ message: 'Title must be between 5 and 100 characters' });
+    }
+    if (!description || description.trim().length < 10 || description.trim().length > 1000) {
+      return res.status(400).json({ message: 'Description must be between 10 and 1000 characters' });
+    }
+    const priceNum = parseFloat(price);
+    if (!price || isNaN(priceNum) || priceNum < 0) {
+      return res.status(400).json({ message: 'Price must be a positive number' });
+    }
+    const validCategories = ['Electronics', 'Fashion', 'Home & Garden', 'Sports & Outdoors', 'Books & Media', 'Toys & Games', 'Health & Beauty', 'Automotive', 'Other'];
+    if (!category || !validCategories.includes(category)) {
+      return res.status(400).json({ message: 'Invalid category' });
+    }
 
     // Check if images were uploaded
     if (!req.files || req.files.length === 0) {
@@ -145,30 +158,47 @@ router.post('/', auth, sellerAuth, upload.array('images', 5), handleUploadError,
 
     // Upload images to Cloudinary
     const images = [];
-    for (const file of req.files) {
+    for (let i = 0; i < req.files.length; i++) {
+      const file = req.files[i];
       try {
+        console.log(`Uploading image ${i + 1}/${req.files.length}: ${file.originalname} (${file.size} bytes)`);
+        
+        if (!file.buffer) {
+          console.error('File buffer is missing');
+          return res.status(400).json({ message: 'Image file is corrupted or invalid' });
+        }
+        
         const result = await uploadToCloudinary(file);
+        console.log(`Image ${i + 1} uploaded successfully: ${result.secure_url}`);
+        
         images.push({
           url: result.secure_url,
           publicId: result.public_id
         });
       } catch (uploadError) {
-        console.error('Cloudinary upload error:', uploadError);
-        return res.status(500).json({ message: 'Error uploading images' });
+        console.error(`Cloudinary upload error for image ${i + 1}:`, uploadError);
+        console.error('Error details:', {
+          message: uploadError.message,
+          http_code: uploadError.http_code,
+          name: uploadError.name
+        });
+        return res.status(500).json({ 
+          message: `Error uploading image ${i + 1}: ${uploadError.message || 'Unknown error'}` 
+        });
       }
     }
 
     // Create product
     const product = new Product({
-      title,
-      description,
-      price: parseFloat(price),
+      title: title.trim(),
+      description: description.trim(),
+      price: priceNum,
       category,
       condition,
       images,
       seller: req.user._id,
-      location,
-      tags
+      location: Object.keys(location).length > 0 ? location : undefined,
+      tags: Array.isArray(tags) ? tags : []
     });
 
     await product.save();
