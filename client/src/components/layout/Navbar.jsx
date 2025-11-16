@@ -3,7 +3,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { 
   Search, 
-  ShoppingCart, 
   User, 
   Menu, 
   X, 
@@ -48,7 +47,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">M</span>
+              <span className="text-white font-bold text-lg">O</span>
             </div>
             <span className="text-xl font-bold text-gray-900">Mart</span>
           </Link>
@@ -83,7 +82,7 @@ const Navbar = () => {
 
             {user ? (
               <>
-                {user.role === 'seller' || user.role === 'admin' ? (
+                {user.role !== 'admin' ? (
                   <Link
                     to="/create-product"
                     className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md transition-colors"
@@ -113,7 +112,7 @@ const Navbar = () => {
                         Profile
                       </Link>
                       
-                      {user.role === 'seller' || user.role === 'admin' ? (
+                      {user.role !== 'admin' ? (
                         <Link
                           to="/my-products"
                           className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -123,15 +122,6 @@ const Navbar = () => {
                           My Products
                         </Link>
                       ) : null}
-
-                      <Link
-                        to="/orders"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Orders
-                      </Link>
 
                       {user.role === 'admin' && (
                         <Link
@@ -214,7 +204,7 @@ const Navbar = () => {
 
               {user ? (
                 <>
-                  {user.role === 'seller' || user.role === 'admin' ? (
+                  {user.role !== 'admin' ? (
                     <Link
                       to="/create-product"
                       className="flex items-center space-x-2 px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
@@ -233,7 +223,7 @@ const Navbar = () => {
                     Profile
                   </Link>
 
-                  {user.role === 'seller' || user.role === 'admin' ? (
+                  {user.role !== 'admin' ? (
                     <Link
                       to="/my-products"
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
@@ -242,14 +232,6 @@ const Navbar = () => {
                       My Products
                     </Link>
                   ) : null}
-
-                  <Link
-                    to="/orders"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Orders
-                  </Link>
 
                   {user.role === 'admin' && (
                     <Link

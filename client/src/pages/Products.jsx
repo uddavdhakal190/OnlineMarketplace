@@ -7,7 +7,6 @@ import {
   Grid, 
   List, 
   SlidersHorizontal,
-  Star,
   MapPin,
   Calendar
 } from 'lucide-react'
@@ -22,61 +21,72 @@ const Products = () => {
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
   
-  // Get search parameters
+  // Get search parameters (URLSearchParams automatically decodes)
   const search = searchParams.get('search') || ''
   const category = searchParams.get('category') || ''
   const minPrice = searchParams.get('minPrice') || ''
   const maxPrice = searchParams.get('maxPrice') || ''
-  const sortBy = searchParams.get('sortBy') || 'createdAt'
-  const sortOrder = searchParams.get('sortOrder') || 'desc'
+  const sortByParam = searchParams.get('sortBy') || 'createdAt'
+  const sortOrderParam = searchParams.get('sortOrder') || 'desc'
+  const sortBy = sortByParam
+  const sortOrder = sortOrderParam
   const page = parseInt(searchParams.get('page')) || 1
 
   // Fetch products
   const { data, isLoading, error } = useQuery(
     ['products', { search, category, minPrice, maxPrice, sortBy, sortOrder, page }],
-    () => productsAPI.getProducts({
-      search,
-      category,
-      minPrice,
-      maxPrice,
-      sortBy,
-      sortOrder,
-      page,
-      limit: 12
-    }),
+    () => {
+      // Ensure category is sent correctly to API
+      const apiParams = {
+        search,
+        minPrice,
+        maxPrice,
+        sortBy,
+        sortOrder,
+        page,
+        limit: 12
+      }
+      // Only include category if it has a value
+      if (category && category.trim() !== '') {
+        apiParams.category = category
+      }
+      return productsAPI.getProducts(apiParams)
+    },
     {
-      select: (response) => response.data
+      select: (response) => response?.data || response,
+      retry: 1,
+      refetchOnWindowFocus: false
     }
   )
 
   const categories = [
     'Electronics',
     'Fashion', 
-    'Home & Garden',
     'Sports & Outdoors',
     'Books & Media',
     'Toys & Games',
     'Health & Beauty',
-    'Automotive',
     'Other'
   ]
 
   const sortOptions = [
-    { value: 'createdAt', label: 'Newest First' },
-    { value: 'price', label: 'Price: Low to High' },
-    { value: '-price', label: 'Price: High to Low' },
-    { value: 'viewCount', label: 'Most Popular' }
+    { value: 'createdAt-desc', label: 'Newest First' },
+    { value: 'createdAt-asc', label: 'Oldest First' },
+    { value: 'price-asc', label: 'Price: Low to High' },
+    { value: 'price-desc', label: 'Price: High to Low' },
+    { value: 'viewCount-desc', label: 'Most Popular' }
   ]
 
   const handleFilterChange = (key, value) => {
     const newParams = new URLSearchParams(searchParams)
-    if (value) {
+    if (value && value.trim() !== '') {
+      // URLSearchParams.set() automatically encodes values, but we ensure it's done correctly
       newParams.set(key, value)
     } else {
       newParams.delete(key)
     }
     newParams.set('page', '1') // Reset to first page
-    setSearchParams(newParams)
+    setSearchParams(newParams, { replace: true }) // Use replace to update URL without adding to history
   }
 
   const handleSearch = (e) => {
@@ -91,12 +101,18 @@ const Products = () => {
   }
 
   if (error) {
+    console.error('Products error:', error)
+    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error occurred'
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Products</h2>
-          <p className="text-gray-600 mb-4">There was an error loading the products. Please try again.</p>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
+          <p className="text-gray-600 mb-2">There was an error loading the products.</p>
+          <p className="text-sm text-red-600 mb-4">{errorMessage}</p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
+          </div>
         </div>
       </div>
     )
@@ -123,7 +139,7 @@ const Products = () => {
                 <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
                 <button
                   onClick={clearFilters}
-                  className="text-sm text-primary-600 hover:text-primary-700"
+                  className="text-sm text-blue-600 hover:text-blue-700"
                 >
                   Clear All
                 </button>
@@ -137,7 +153,7 @@ const Products = () => {
                     type="text"
                     placeholder="Search products..."
                     defaultValue={search}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
@@ -152,7 +168,7 @@ const Products = () => {
                       type="radio"
                       name="category"
                       value=""
-                      checked={!category}
+                      checked={!category || category.trim() === ''}
                       onChange={(e) => handleFilterChange('category', e.target.value)}
                       className="mr-2"
                     />
@@ -183,14 +199,14 @@ const Products = () => {
                     placeholder="Min"
                     value={minPrice}
                     onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     value={maxPrice}
                     onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -202,10 +218,13 @@ const Products = () => {
                   value={`${sortBy}-${sortOrder}`}
                   onChange={(e) => {
                     const [field, order] = e.target.value.split('-')
-                    handleFilterChange('sortBy', field)
-                    handleFilterChange('sortOrder', order)
+                    const newParams = new URLSearchParams(searchParams)
+                    newParams.set('sortBy', field)
+                    newParams.set('sortOrder', order)
+                    newParams.set('page', '1') // Reset to first page
+                    setSearchParams(newParams)
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -233,7 +252,7 @@ const Products = () => {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg ${
-                    viewMode === 'grid' ? 'bg-primary-100 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                    viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'
                   }`}
                 >
                   <Grid className="h-5 w-5" />
@@ -241,7 +260,7 @@ const Products = () => {
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg ${
-                    viewMode === 'list' ? 'bg-primary-100 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                    viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'
                   }`}
                 >
                   <List className="h-5 w-5" />
@@ -319,13 +338,13 @@ const ProductCard = ({ product, viewMode }) => {
               className="w-32 h-32 object-cover rounded-lg"
             />
             <div className="flex-1">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2 hover:text-primary-600 transition-colors">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
                 {product.title}
               </h3>
               <p className="text-gray-600 mb-3 line-clamp-2">{product.description}</p>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-primary-600 mb-1">
+                  <p className="text-2xl font-bold text-blue-600 mb-1">
                     {formatCurrency(product.price)}
                   </p>
                   <div className="flex items-center text-sm text-gray-500">
@@ -337,10 +356,6 @@ const ProductCard = ({ product, viewMode }) => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center mb-2">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="ml-1 text-sm text-gray-600">4.8</span>
-                  </div>
                   <p className="text-sm text-gray-500">by {product.seller?.name}</p>
                 </div>
               </div>
@@ -362,22 +377,18 @@ const ProductCard = ({ product, viewMode }) => {
           />
         </div>
         <Card.Content>
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
             {product.title}
           </h3>
-          <p className="text-2xl font-bold text-primary-600 mb-2">
+          <p className="text-2xl font-bold text-blue-600 mb-2">
             {formatCurrency(product.price)}
           </p>
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>{product.category}</span>
             <span>{formatRelativeTime(product.createdAt)}</span>
           </div>
-          <div className="flex items-center mt-2">
-            <div className="flex items-center">
-              <Star className="h-4 w-4 text-yellow-400 fill-current" />
-              <span className="ml-1 text-sm text-gray-600">4.8</span>
-            </div>
-            <span className="ml-2 text-sm text-gray-500">
+          <div className="mt-2">
+            <span className="text-sm text-gray-500">
               by {product.seller?.name}
             </span>
           </div>

@@ -1,4 +1,4 @@
-# Mart - C2C Marketplace Platform (Finland)
+# O Mart - C2C Marketplace Platform (Finland)
 
 A complete consumer-to-consumer marketplace platform built with the MERN stack, designed for Finland. Users can buy and sell new products with secure payment processing in Euros (€).
 
@@ -218,9 +218,52 @@ Mart/
 
 This project is licensed under the MIT License.
 
+## 🔧 Troubleshooting
+
+### Port Already in Use Error
+
+If you see an error like `Error: listen EADDRINUSE: address already in use :::5001`, it means another process is using the port.
+
+**Quick Fix (Method 1 - Using the script):**
+```bash
+./fix-port.sh 5001
+```
+
+**Quick Fix (Method 2 - Manual command):**
+```bash
+# Find and kill the process using port 5001
+lsof -ti:5001 | xargs kill -9
+```
+
+**Quick Fix (Method 3 - One-liner for any port):**
+```bash
+# Replace 5001 with your port number
+lsof -ti:5001 | xargs kill -9 && cd server && npm run dev
+```
+
+**Alternative - Change the port:**
+If you prefer to use a different port, update the `PORT` in `server/.env`:
+```env
+PORT=5002  # or any other available port
+```
+
+**Check what's using a port:**
+```bash
+lsof -i:5001
+```
+
+**For frontend port (usually 3000 or 5173):**
+```bash
+# Kill process on port 3000
+lsof -ti:3000 | xargs kill -9
+
+# Or port 5173 (Vite default)
+lsof -ti:5173 | xargs kill -9
+```
+
 ## 🆘 Support
 
-For support, email support@mart.com or create an issue in the repository.
+For support, email support@omart.fi or create an issue in the repository.
 
 ---
 

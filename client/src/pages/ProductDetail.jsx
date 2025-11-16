@@ -1,15 +1,17 @@
 import { useParams, Link } from 'react-router-dom'
+import { useState } from 'react'
 import { useQuery } from 'react-query'
+import { useAuth } from '../contexts/AuthContext'
+import toast from 'react-hot-toast'
 import { 
   ArrowLeft, 
-  Star, 
   MapPin, 
   Calendar, 
-  Shield, 
-  Truck,
-  Heart,
-  Share2,
-  MessageCircle
+  MessageCircle,
+  Mail,
+  Phone,
+  Copy,
+  X
 } from 'lucide-react'
 import { productsAPI } from '../utils/api'
 import { formatCurrency, formatRelativeTime } from '../utils/helpers'
@@ -19,6 +21,8 @@ import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const ProductDetail = () => {
   const { id } = useParams()
+  const { user } = useAuth()
+  const [showContactModal, setShowContactModal] = useState(false)
 
   const { data: product, isLoading, error } = useQuery(
     ['product', id],
@@ -95,10 +99,6 @@ const ProductDetail = () => {
               
               <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
                 <div className="flex items-center">
-                  <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                  <span>4.8 (24 reviews)</span>
-                </div>
-                <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
                   <span>{product.location?.city || 'Unknown Location'}</span>
                 </div>
@@ -116,15 +116,9 @@ const ProductDetail = () => {
             </div>
 
             {/* Product Details */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium text-gray-900">Category</h4>
-                <p className="text-gray-600">{product.category}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">Condition</h4>
-                <p className="text-gray-600">{product.condition}</p>
-              </div>
+            <div>
+              <h4 className="font-medium text-gray-900 mb-1">Category</h4>
+              <p className="text-gray-600">{product.category}</p>
             </div>
 
             {/* Seller Info */}
@@ -141,9 +135,14 @@ const ProductDetail = () => {
                 </div>
               </div>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => setShowContactModal(true)}
+                >
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Contact
+                  Contact Seller
                 </Button>
                 <Link to={`/seller/${product.seller?._id}`}>
                   <Button variant="outline" size="sm" className="flex-1">
@@ -151,39 +150,145 @@ const ProductDetail = () => {
                   </Button>
                 </Link>
               </div>
+              
+              {/* Contact Info Display */}
+              {product.seller?.email && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 mb-2">Contact Information:</p>
+                  <div className="space-y-1">
+                    <a 
+                      href={`mailto:${product.seller.email}?subject=Inquiry about ${product.title}`}
+                      className="flex items-center text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      <Mail className="h-3 w-3 mr-2" />
+                      {product.seller.email}
+                    </a>
+                    {product.seller?.phone && (
+                      <a 
+                        href={`tel:${product.seller.phone}`}
+                        className="flex items-center text-sm text-blue-600 hover:text-blue-700"
+                      >
+                        <Phone className="h-3 w-3 mr-2" />
+                        {product.seller.phone}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </Card>
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Link to={`/checkout/${product._id}`}>
-                <Button className="w-full" size="lg">
-                  Buy Now
+              {user?.role !== 'admin' ? (
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={() => setShowContactModal(true)}
+                >
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  Contact Seller to Buy
                 </Button>
-              </Link>
-              
-              <div className="flex space-x-2">
-                <Button variant="outline" className="flex-1">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-              </div>
+              ) : (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800 text-center">
+                    Admin accounts cannot purchase products. Admin role is for management only.
+                  </p>
+                </div>
+              )}
             </div>
+            
+            {/* Contact Modal */}
+            {showContactModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <Card className="max-w-md w-full p-6 relative">
+                  <button
+                    onClick={() => setShowContactModal(false)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                  
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">
+                    Contact {product.seller?.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Get in touch with the seller to purchase <strong>{product.title}</strong>
+                  </p>
+                  
+                  <div className="space-y-4">
+                    {/* Email */}
+                    {product.seller?.email && (
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Mail className="h-5 w-5 text-blue-600 mr-2" />
+                            <span className="font-medium text-gray-900">Email</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(product.seller.email)
+                              toast.success('Email copied to clipboard!')
+                            }}
+                            className="text-blue-600 hover:text-blue-700"
+                            title="Copy email"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <a
+                          href={`mailto:${product.seller.email}?subject=Inquiry about ${product.title}&body=Hi, I'm interested in purchasing ${product.title} for ${formatCurrency(product.price)}.`}
+                          className="text-blue-600 hover:text-blue-700 break-all"
+                        >
+                          {product.seller.email}
+                        </a>
+                      </div>
+                    )}
+                    
+                    {/* Phone */}
+                    {product.seller?.phone ? (
+                      <div className="p-4 bg-green-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Phone className="h-5 w-5 text-green-600 mr-2" />
+                            <span className="font-medium text-gray-900">Phone</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(product.seller.phone)
+                              toast.success('Phone number copied to clipboard!')
+                            }}
+                            className="text-green-600 hover:text-green-700"
+                            title="Copy phone"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <a
+                          href={`tel:${product.seller.phone}`}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          {product.seller.phone}
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center">
+                          <Phone className="h-5 w-5 text-gray-400 mr-2" />
+                          <span className="text-gray-500 text-sm">Phone number not provided</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="pt-4 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 text-center">
+                        Click on email or phone to contact the seller directly
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
 
-            {/* Trust Badges */}
-            <div className="flex items-center space-x-6 text-sm text-gray-500">
-              <div className="flex items-center">
-                <Shield className="h-4 w-4 mr-1" />
-                <span>Secure Payment</span>
-              </div>
-              <div className="flex items-center">
-                <Truck className="h-4 w-4 mr-1" />
-                <span>Fast Shipping</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

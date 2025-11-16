@@ -39,6 +39,11 @@ router.post('/create-payment-intent', auth, [
       return res.status(400).json({ message: 'Product is not available for purchase' });
     }
 
+    // Check if user is admin (admin cannot buy)
+    if (req.user.role === 'admin') {
+      return res.status(403).json({ message: 'Admin cannot purchase products. Admin role is for management only.' });
+    }
+
     // Check if user is trying to buy their own product
     if (product.seller._id.toString() === req.user._id.toString()) {
       return res.status(400).json({ message: 'Cannot buy your own product' });

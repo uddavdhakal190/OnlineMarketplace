@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { ArrowLeft, Upload, X } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 import { productsAPI } from '../utils/api'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -43,13 +44,48 @@ const EditProduct = () => {
   const onSubmit = async (data) => {
     setIsSubmitting(true)
     try {
-      // TODO: Implement product update
-      console.log('Updated product data:', data)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Create FormData for the update (backend expects FormData due to multer middleware)
+      const formData = new FormData()
+      
+      // Add text fields
+      formData.append('title', data.title)
+      formData.append('description', data.description)
+      formData.append('price', parseFloat(data.price))
+      formData.append('category', data.category)
+      formData.append('condition', 'New') // All products are new
+      
+      // Add location if it exists
+      if (product.location) {
+        if (product.location.city) formData.append('location.city', product.location.city)
+        if (product.location.state) formData.append('location.state', product.location.state)
+        formData.append('location.country', product.location.country || 'Finland')
+      }
+
+      // Call API to update product (send FormData)
+      await productsAPI.updateProduct(id, formData)
+      
+      toast.success('Product updated successfully!')
       navigate('/my-products')
     } catch (error) {
       console.error('Error updating product:', error)
+      console.error('Error response:', error.response?.data)
+      console.error('Error status:', error.response?.status)
+      
+      let errorMessage = 'Failed to update product. Please try again.'
+      
+      if (error.response?.data) {
+        if (error.response.data.message) {
+          errorMessage = error.response.data.message
+        } else if (error.response.data.errors && Array.isArray(error.response.data.errors)) {
+          errorMessage = error.response.data.errors.map(e => e.msg || e.message).join(', ')
+        } else if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data
+        }
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -144,12 +180,10 @@ const EditProduct = () => {
                   >
                     <option value="Electronics">Electronics</option>
                     <option value="Fashion">Fashion</option>
-                    <option value="Home & Garden">Home & Garden</option>
                     <option value="Sports & Outdoors">Sports & Outdoors</option>
                     <option value="Books & Media">Books & Media</option>
                     <option value="Toys & Games">Toys & Games</option>
                     <option value="Health & Beauty">Health & Beauty</option>
-                    <option value="Automotive">Automotive</option>
                     <option value="Other">Other</option>
                   </select>
                   {errors.category && (

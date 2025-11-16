@@ -37,11 +37,12 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
-// Check if user is seller or admin
+// Check if user can sell (all users except admin can sell)
 const sellerAuth = (req, res, next) => {
-  if (req.user.role !== 'seller' && req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Access denied. Seller role required.' });
+  if (req.user.role === 'admin') {
+    return res.status(403).json({ message: 'Access denied. Admin cannot sell products.' });
   }
+  // All other users (buyer, seller) can sell
   next();
 };
 

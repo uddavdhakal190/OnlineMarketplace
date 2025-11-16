@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from 'react-query'
+import { useQueryClient } from 'react-query'
+import { toast } from 'react-hot-toast'
 import { adminAPI } from '../../utils/api'
 import { formatCurrency, formatRelativeTime, getStatusColor } from '../../utils/helpers'
 import Card from '../../components/ui/Card'
@@ -8,7 +10,8 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { Check, X, Trash2, Eye } from 'lucide-react'
 
 const AdminProducts = () => {
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('pending') // Default to pending
+  const queryClient = useQueryClient()
 
   const { data, isLoading, refetch } = useQuery(
     ['admin-products', statusFilter],
@@ -31,9 +34,12 @@ const AdminProducts = () => {
   const handleApprove = async (productId) => {
     try {
       await adminAPI.approveProduct(productId)
+      toast.success('Product approved successfully!')
+      queryClient.invalidateQueries(['admin-products'])
       refetch()
     } catch (error) {
       console.error('Error approving product:', error)
+      toast.error(error.response?.data?.message || 'Failed to approve product')
     }
   }
 
@@ -42,9 +48,12 @@ const AdminProducts = () => {
     if (reason) {
       try {
         await adminAPI.rejectProduct(productId, reason)
+        toast.success('Product rejected')
+        queryClient.invalidateQueries(['admin-products'])
         refetch()
       } catch (error) {
         console.error('Error rejecting product:', error)
+        toast.error(error.response?.data?.message || 'Failed to reject product')
       }
     }
   }
@@ -77,7 +86,7 @@ const AdminProducts = () => {
                 onClick={() => setStatusFilter(option.value)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   statusFilter === option.value
-                    ? 'bg-primary-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -94,7 +103,14 @@ const AdminProducts = () => {
           </div>
         ) : data?.products?.length > 0 ? (
           <div className="space-y-4">
-            {data.products.map((product) => (
+            {/* Debug info */}
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-gray-700">
+              <strong>Found {data.products.length} product(s)</strong> with status filter: <strong>{statusFilter}</strong>
+            </div>
+            {data.products.map((product) => {
+              // Debug: Log product status
+              console.log('Product:', product.title, 'Status:', product.status, 'Is Pending?', product.status === 'pending')
+              return (
               <Card key={product._id} className="p-6">
                 <div className="flex items-start space-x-4">
                   <img
@@ -142,7 +158,7 @@ const AdminProducts = () => {
                           <Button
                             size="sm"
                             onClick={() => handleApprove(product._id)}
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-green-600 hover:bg-green-700 text-white"
                           >
                             <Check className="h-4 w-4 mr-2" />
                             Approve
@@ -151,12 +167,19 @@ const AdminProducts = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => handleReject(product._id)}
-                            className="text-red-600 hover:text-red-700 hover:border-red-300"
+                            className="text-red-600 hover:text-red-700 hover:border-red-300 border-red-300"
                           >
                             <X className="h-4 w-4 mr-2" />
                             Reject
                           </Button>
                         </>
+                      )}
+                      
+                      {/* Debug: Show status if not pending */}
+                      {product.status !== 'pending' && (
+                        <span className="text-xs text-gray-500 ml-2">
+                          Status: {product.status}
+                        </span>
                       )}
                       
                       <Button
@@ -171,7 +194,8 @@ const AdminProducts = () => {
                   </div>
                 </div>
               </Card>
-            ))}
+            )
+            })}
           </div>
         ) : (
           <div className="text-center py-12">

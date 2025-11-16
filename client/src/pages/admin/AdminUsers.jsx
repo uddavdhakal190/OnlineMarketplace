@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { useQuery } from 'react-query'
 import { adminAPI } from '../../utils/api'
-import { formatDate } from '../../utils/helpers'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import { User, Mail, Calendar, Shield, UserCheck, UserX } from 'lucide-react'
+import { User, Mail, Shield, UserCheck, UserX } from 'lucide-react'
 
 const AdminUsers = () => {
   const [roleFilter, setRoleFilter] = useState('all')
@@ -22,9 +21,8 @@ const AdminUsers = () => {
 
   const roleOptions = [
     { value: 'all', label: 'All Users' },
-    { value: 'buyer', label: 'Buyers' },
-    { value: 'seller', label: 'Sellers' },
-    { value: 'admin', label: 'Admins' }
+    { value: 'admin', label: 'Admins' },
+    { value: 'buyer', label: 'Regular Users' } // Shows all non-admin users
   ]
 
   const handleToggleStatus = async (userId) => {
@@ -53,7 +51,7 @@ const AdminUsers = () => {
                 onClick={() => setRoleFilter(option.value)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   roleFilter === option.value
-                    ? 'bg-primary-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -84,10 +82,9 @@ const AdminUsers = () => {
                       <h3 className="text-lg font-semibold text-gray-900">{user.name}</h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                        user.role === 'seller' ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'
+                        'bg-blue-100 text-blue-800'
                       }`}>
-                        {user.role}
+                        {user.role === 'admin' ? 'Admin' : 'User'}
                       </span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -100,10 +97,6 @@ const AdminUsers = () => {
                       <div className="flex items-center">
                         <Mail className="h-4 w-4 mr-1" />
                         <span>{user.email}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        <span>Joined {formatDate(user.createdAt)}</span>
                       </div>
                     </div>
                   </div>

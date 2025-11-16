@@ -1,8 +1,5 @@
 import { Link } from 'react-router-dom'
 import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
   Mail, 
   Phone, 
   MapPin,
@@ -17,25 +14,14 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">M</span>
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">O</span>
               </div>
               <span className="text-xl font-bold">Mart</span>
             </div>
             <p className="text-gray-300 text-sm">
               The best place to buy and sell new products. Connect with sellers and buyers in your community.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Instagram className="h-5 w-5" />
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -80,11 +66,6 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/products?category=Home & Garden" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Home & Garden
-                </Link>
-              </li>
-              <li>
                 <Link to="/products?category=Sports & Outdoors" className="text-gray-300 hover:text-white transition-colors text-sm">
                   Sports & Outdoors
                 </Link>
@@ -98,7 +79,7 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-300 text-sm">support@mart.fi</span>
+                <span className="text-gray-300 text-sm">support@omart.fi</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-gray-400" />
@@ -115,7 +96,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 Mart. All rights reserved.
+              © 2025 O Mart. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">

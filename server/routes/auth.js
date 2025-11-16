@@ -32,7 +32,9 @@ router.post('/register', [
       return res.status(400).json({ message: errorMessages });
     }
 
-    const { name, email, password, role = 'buyer', phone, address } = req.body;
+    const { name, email, password, phone, address } = req.body;
+    // All users are registered as 'buyer' by default, but they can both buy and sell
+    const role = 'buyer';
 
     // Simple email check - prefer Gmail but allow others
     if (!email.toLowerCase().includes('@gmail.com')) {

@@ -1,25 +1,57 @@
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-hot-toast'
 import { adminAPI } from '../../utils/api'
-import { formatCurrency } from '../../utils/helpers'
 import Card from '../../components/ui/Card'
+import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { 
   Users, 
   Package, 
-  ShoppingCart, 
-  DollarSign,
-  TrendingUp,
-  Clock
+  Clock,
+  Check,
+  X,
+  ArrowRight
 } from 'lucide-react'
 
 const AdminDashboard = () => {
-  const { data, isLoading } = useQuery(
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  
+  const { data, isLoading, refetch } = useQuery(
     'admin-dashboard',
     () => adminAPI.getDashboard(),
     {
       select: (response) => response.data
     }
   )
+
+  const handleApprove = async (productId) => {
+    try {
+      await adminAPI.approveProduct(productId)
+      toast.success('Product approved successfully!')
+      queryClient.invalidateQueries('admin-dashboard')
+      refetch()
+    } catch (error) {
+      console.error('Error approving product:', error)
+      toast.error(error.response?.data?.message || 'Failed to approve product')
+    }
+  }
+
+  const handleReject = async (productId) => {
+    const reason = prompt('Reason for rejection:')
+    if (reason) {
+      try {
+        await adminAPI.rejectProduct(productId, reason)
+        toast.success('Product rejected')
+        queryClient.invalidateQueries('admin-dashboard')
+        refetch()
+      } catch (error) {
+        console.error('Error rejecting product:', error)
+        toast.error(error.response?.data?.message || 'Failed to reject product')
+      }
+    }
+  }
 
   if (isLoading) {
     return (
@@ -45,18 +77,6 @@ const AdminDashboard = () => {
       color: 'bg-green-500'
     },
     {
-      title: 'Total Orders',
-      value: stats?.totalOrders || 0,
-      icon: <ShoppingCart className="h-6 w-6" />,
-      color: 'bg-purple-500'
-    },
-    {
-      title: 'Total Revenue',
-      value: formatCurrency(stats?.totalRevenue || 0),
-      icon: <DollarSign className="h-6 w-6" />,
-      color: 'bg-yellow-500'
-    },
-    {
       title: 'Pending Products',
       value: stats?.pendingProducts || 0,
       icon: <Clock className="h-6 w-6" />,
@@ -73,7 +93,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statCards.map((stat, index) => (
             <Card key={index} className="p-6">
               <div className="flex items-center">
@@ -107,10 +127,9 @@ const AdminDashboard = () => {
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                    user.role === 'seller' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
+                    'bg-blue-100 text-blue-800'
                   }`}>
-                    {user.role}
+                    {user.role === 'admin' ? 'Admin' : 'User'}
                   </span>
                 </div>
               ))}
@@ -119,28 +138,66 @@ const AdminDashboard = () => {
 
           {/* Recent Products */}
           <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Products</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Recent Products</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/admin/products')}
+                className="text-xs"
+              >
+                View All
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
             <div className="space-y-4">
-              {recent?.products?.map((product) => (
-                <div key={product._id} className="flex items-center space-x-3">
-                  <img
-                    src={product.images?.[0]?.url || '/placeholder-product.jpg'}
-                    alt={product.title}
-                    className="w-12 h-12 object-cover rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900 line-clamp-1">{product.title}</p>
-                    <p className="text-sm text-gray-500">by {product.seller?.name}</p>
+              {recent?.products?.length > 0 ? (
+                recent.products.map((product) => (
+                  <div key={product._id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <img
+                      src={product.images?.[0]?.url || '/placeholder-product.jpg'}
+                      alt={product.title}
+                      className="w-12 h-12 object-cover rounded-lg"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 line-clamp-1">{product.title}</p>
+                      <p className="text-sm text-gray-500">by {product.seller?.name}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                        product.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        product.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {product.status}
+                      </span>
+                      {product.status === 'pending' && (
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApprove(product._id)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 h-auto"
+                            title="Approve"
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleReject(product._id)}
+                            className="text-red-600 hover:text-red-700 hover:border-red-300 border-red-300 px-2 py-1 h-auto"
+                            title="Reject"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    product.status === 'approved' ? 'bg-green-100 text-green-800' :
-                    product.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {product.status}
-                  </span>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm text-center py-4">No products yet</p>
+              )}
             </div>
           </Card>
         </div>

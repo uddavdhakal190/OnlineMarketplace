@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from 'react-query'
-import { Plus, Edit, Trash2, Eye, MoreVertical } from 'lucide-react'
-import { usersAPI } from '../utils/api'
+import { useQuery, useQueryClient } from 'react-query'
+import { Plus, Edit, Trash2, Eye, MoreVertical, CheckCircle } from 'lucide-react'
+import { usersAPI, productsAPI } from '../utils/api'
 import { formatCurrency, formatRelativeTime, getStatusColor } from '../utils/helpers'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import toast from 'react-hot-toast'
 
 const MyProducts = () => {
   const [statusFilter, setStatusFilter] = useState('all')
+  const queryClient = useQueryClient()
 
   const { data, isLoading, refetch } = useQuery(
     ['my-products', statusFilter],
@@ -33,9 +35,27 @@ const MyProducts = () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         await productsAPI.deleteProduct(productId)
+        toast.success('Product deleted successfully')
         refetch()
+        queryClient.invalidateQueries(['my-products'])
       } catch (error) {
         console.error('Error deleting product:', error)
+        toast.error(error.response?.data?.message || 'Failed to delete product')
+      }
+    }
+  }
+
+  const handleMarkAsSold = async (productId) => {
+    if (window.confirm('Mark this product as sold? This will make it unavailable for purchase.')) {
+      try {
+        await productsAPI.markAsSold(productId)
+        toast.success('Product marked as sold successfully')
+        refetch()
+        queryClient.invalidateQueries(['my-products'])
+        queryClient.invalidateQueries(['products'])
+      } catch (error) {
+        console.error('Error marking product as sold:', error)
+        toast.error(error.response?.data?.message || 'Failed to mark product as sold')
       }
     }
   }
@@ -65,7 +85,7 @@ const MyProducts = () => {
                 onClick={() => setStatusFilter(option.value)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   statusFilter === option.value
-                    ? 'bg-primary-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -122,29 +142,41 @@ const MyProducts = () => {
                     <span>{product.viewCount} views</span>
                   </div>
                   
-                  <div className="flex space-x-2">
-                    <Link to={`/products/${product._id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
-                      </Button>
-                    </Link>
-                    {product.status !== 'sold' && (
-                      <Link to={`/edit-product/${product._id}`} className="flex-1">
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex space-x-2">
+                      <Link to={`/products/${product._id}`} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full">
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
                         </Button>
                       </Link>
+                      {product.status !== 'sold' && (
+                        <Link to={`/edit-product/${product._id}`} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                        </Link>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(product._id)}
+                        className="text-red-600 hover:text-red-700 hover:border-red-300"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {product.status !== 'sold' && product.status === 'approved' && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleMarkAsSold(product._id)}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Mark as Sold
+                      </Button>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(product._id)}
-                      className="text-red-600 hover:text-red-700 hover:border-red-300"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 </Card.Content>
               </Card>

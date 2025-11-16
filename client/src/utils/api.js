@@ -72,6 +72,7 @@ export const productsAPI = {
   },
   deleteProduct: (id) => api.delete(`/products/${id}`),
   getMyProducts: (params) => api.get('/products/seller/my-products', { params }),
+  markAsSold: (id) => api.put(`/products/${id}/mark-sold`),
 }
 
 export const usersAPI = {

@@ -1,13 +1,17 @@
 import { useParams } from 'react-router-dom'
+import { useState } from 'react'
 import { useQuery } from 'react-query'
+import toast from 'react-hot-toast'
 import { usersAPI, productsAPI } from '../utils/api'
 import { formatCurrency, formatRelativeTime } from '../utils/helpers'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import { Mail, Phone, Copy, X } from 'lucide-react'
 
 const SellerProfile = () => {
   const { id } = useParams()
+  const [showContactModal, setShowContactModal] = useState(false)
 
   const { data: sellerData, isLoading: sellerLoading } = useQuery(
     ['seller', id],
@@ -57,19 +61,43 @@ const SellerProfile = () => {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{seller.name}</h1>
               <p className="text-gray-600 mb-4">Verified Seller</p>
               <div className="flex items-center space-x-6 text-sm text-gray-500">
-                <span>Member since {new Date(seller.createdAt).getFullYear()}</span>
                 <span>{stats.totalProducts} products</span>
                 <span>{stats.totalViews} total views</span>
               </div>
             </div>
             <div className="flex space-x-2">
-              <Button variant="outline">
+              <Button 
+                variant="outline"
+                onClick={() => setShowContactModal(true)}
+              >
                 Contact Seller
               </Button>
-              <Button>
-                Follow
-              </Button>
             </div>
+            
+            {/* Contact Info Quick View */}
+            {seller.email && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-xs text-gray-500 mb-2">Contact Information:</p>
+                <div className="flex flex-wrap gap-4">
+                  <a 
+                    href={`mailto:${seller.email}`}
+                    className="flex items-center text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    <Mail className="h-4 w-4 mr-1" />
+                    {seller.email}
+                  </a>
+                  {seller.phone && (
+                    <a 
+                      href={`tel:${seller.phone}`}
+                      className="flex items-center text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      <Phone className="h-4 w-4 mr-1" />
+                      {seller.phone}
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -113,6 +141,98 @@ const SellerProfile = () => {
             </div>
           )}
         </div>
+        
+        {/* Contact Modal */}
+        {showContactModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <Card className="max-w-md w-full p-6 relative">
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Contact {seller.name}
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Get in touch with this seller
+              </p>
+              
+              <div className="space-y-4">
+                {/* Email */}
+                {seller.email && (
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        <Mail className="h-5 w-5 text-blue-600 mr-2" />
+                        <span className="font-medium text-gray-900">Email</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(seller.email)
+                          toast.success('Email copied to clipboard!')
+                        }}
+                        className="text-blue-600 hover:text-blue-700"
+                        title="Copy email"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <a
+                      href={`mailto:${seller.email}`}
+                      className="text-blue-600 hover:text-blue-700 break-all"
+                    >
+                      {seller.email}
+                    </a>
+                  </div>
+                )}
+                
+                {/* Phone */}
+                {seller.phone ? (
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        <Phone className="h-5 w-5 text-green-600 mr-2" />
+                        <span className="font-medium text-gray-900">Phone</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(seller.phone)
+                          toast.success('Phone number copied to clipboard!')
+                        }}
+                        className="text-green-600 hover:text-green-700"
+                        title="Copy phone"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <a
+                      href={`tel:${seller.phone}`}
+                      className="text-green-600 hover:text-green-700"
+                    >
+                      {seller.phone}
+                    </a>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center">
+                      <Phone className="h-5 w-5 text-gray-400 mr-2" />
+                      <span className="text-gray-500 text-sm">Phone number not provided</span>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 text-center">
+                    Click on email or phone to contact the seller directly
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )

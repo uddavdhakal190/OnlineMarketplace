@@ -178,7 +178,14 @@ router.get('/users', [
     const { page = 1, limit = 20, role } = req.query;
     const filter = {};
     
-    if (role) filter.role = role;
+    if (role) {
+      if (role === 'buyer') {
+        // Show all non-admin users (buyers and sellers are both regular users)
+        filter.role = { $ne: 'admin' };
+      } else {
+        filter.role = role;
+      }
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     

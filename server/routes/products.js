@@ -22,6 +22,7 @@ router.get('/', async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
+
     // Clean empty query parameters
     const cleanCategory = category && category.trim() !== '' ? category : undefined;
     const cleanSearch = search && search.trim() !== '' ? search : undefined;
@@ -51,13 +52,29 @@ router.get('/', async (req, res) => {
       if (cleanMinPrice) filter.price.$gte = cleanMinPrice;
       if (cleanMaxPrice) filter.price.$lte = cleanMaxPrice;
     }
+    // Handle text search - use regex for simpler search that works with sorting
     if (cleanSearch) {
-      filter.$text = { $search: cleanSearch };
+      filter.$or = [
+        { title: { $regex: cleanSearch, $options: 'i' } },
+        { description: { $regex: cleanSearch, $options: 'i' } },
+        { tags: { $regex: cleanSearch, $options: 'i' } }
+      ];
     }
 
     // Build sort object
     const sort = {};
-    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    // Validate sortBy field
+    const validSortFields = ['createdAt', 'price', 'viewCount', 'title'];
+    const cleanSortBy = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const cleanSortOrder = sortOrder === 'asc' ? 1 : -1;
+    
+    // Primary sort
+    sort[cleanSortBy] = cleanSortOrder;
+    
+    // Secondary sort by createdAt (newest first) for consistent ordering when primary values are equal
+    if (cleanSortBy !== 'createdAt') {
+      sort.createdAt = -1; // Always newest first as secondary sort
+    }
 
     // Calculate pagination
     const skip = (pageNum - 1) * limitNum;
@@ -84,7 +101,11 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Get products error:', error);
-    res.status(500).json({ message: 'Server error while fetching products' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      message: 'Server error while fetching products',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -146,7 +167,7 @@ router.post('/', auth, sellerAuth, upload.array('images', 5), handleUploadError,
     if (!price || isNaN(priceNum) || priceNum < 0) {
       return res.status(400).json({ message: 'Price must be a positive number' });
     }
-    const validCategories = ['Electronics', 'Fashion', 'Home & Garden', 'Sports & Outdoors', 'Books & Media', 'Toys & Games', 'Health & Beauty', 'Automotive', 'Other'];
+    const validCategories = ['Electronics', 'Fashion', 'Sports & Outdoors', 'Books & Media', 'Toys & Games', 'Health & Beauty', 'Other'];
     if (!category || !validCategories.includes(category)) {
       return res.status(400).json({ message: 'Invalid category' });
     }
@@ -182,8 +203,20 @@ router.post('/', auth, sellerAuth, upload.array('images', 5), handleUploadError,
           http_code: uploadError.http_code,
           name: uploadError.name
         });
+        
+        // Provide helpful error messages
+        let errorMessage = uploadError.message || 'Unknown error';
+        
+        if (errorMessage.includes('disabled') || errorMessage.includes('cloud_name is disabled')) {
+          errorMessage = 'Cloudinary account is disabled. Please create a new Cloudinary account and update your credentials in the .env file. See CLOUDINARY_FIX.md for instructions.';
+        } else if (uploadError.http_code === 401) {
+          errorMessage = 'Cloudinary authentication failed. Please check your API credentials in the .env file.';
+        } else if (uploadError.http_code === 400) {
+          errorMessage = 'Invalid image file. Please try a different image.';
+        }
+        
         return res.status(500).json({ 
-          message: `Error uploading image ${i + 1}: ${uploadError.message || 'Unknown error'}` 
+          message: `Error uploading image ${i + 1}: ${errorMessage}` 
         });
       }
     }
@@ -217,20 +250,48 @@ router.post('/', auth, sellerAuth, upload.array('images', 5), handleUploadError,
 // @route   PUT /api/products/:id
 // @desc    Update a product
 // @access  Private (Seller/Owner)
-router.put('/:id', auth, upload.array('images', 5), handleUploadError, [
-  body('title').optional().trim().isLength({ min: 5, max: 100 }).withMessage('Title must be between 5 and 100 characters'),
-  body('description').optional().trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be between 10 and 1000 characters'),
-  body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('category').optional().isIn([
-    'Electronics', 'Fashion', 'Home & Garden', 'Sports & Outdoors',
-    'Books & Media', 'Toys & Games', 'Health & Beauty', 'Automotive', 'Other'
-  ]).withMessage('Invalid category'),
-  body('condition').optional().isIn(['New', 'Like New', 'Good', 'Fair']).withMessage('Invalid condition')
-], async (req, res) => {
+router.put('/:id', auth, upload.array('images', 5), handleUploadError, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    // Manual validation for FormData (express-validator doesn't work well with FormData)
+    const errors = [];
+    
+    if (req.body.title !== undefined) {
+      const title = req.body.title?.trim() || '';
+      if (title.length < 5 || title.length > 100) {
+        errors.push({ msg: 'Title must be between 5 and 100 characters', param: 'title' });
+      }
+    }
+    
+    if (req.body.description !== undefined) {
+      const description = req.body.description?.trim() || '';
+      if (description.length < 10 || description.length > 1000) {
+        errors.push({ msg: 'Description must be between 10 and 1000 characters', param: 'description' });
+      }
+    }
+    
+    if (req.body.price !== undefined) {
+      const price = parseFloat(req.body.price);
+      if (isNaN(price) || price < 0) {
+        errors.push({ msg: 'Price must be a positive number', param: 'price' });
+      }
+    }
+    
+    if (req.body.category !== undefined) {
+      const validCategories = ['Electronics', 'Fashion', 'Sports & Outdoors', 'Books & Media', 'Toys & Games', 'Health & Beauty', 'Other'];
+      if (!validCategories.includes(req.body.category)) {
+        errors.push({ msg: 'Invalid category', param: 'category' });
+      }
+    }
+    
+    if (req.body.condition !== undefined) {
+      const validConditions = ['New', 'Like New', 'Good', 'Fair'];
+      if (!validConditions.includes(req.body.condition)) {
+        errors.push({ msg: 'Invalid condition', param: 'condition' });
+      }
+    }
+    
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
     }
 
     const product = await Product.findById(req.params.id);
@@ -248,8 +309,33 @@ router.put('/:id', auth, upload.array('images', 5), handleUploadError, [
       return res.status(400).json({ message: 'Cannot update sold product' });
     }
 
-    const updateData = { ...req.body };
-    if (updateData.price) updateData.price = parseFloat(updateData.price);
+    // Build updateData object with only the fields that are being updated
+    const updateData = {};
+    
+    if (req.body.title !== undefined) {
+      updateData.title = req.body.title.trim();
+    }
+    if (req.body.description !== undefined) {
+      updateData.description = req.body.description.trim();
+    }
+    if (req.body.price !== undefined) {
+      updateData.price = parseFloat(req.body.price);
+    }
+    if (req.body.category !== undefined) {
+      updateData.category = req.body.category;
+    }
+    if (req.body.condition !== undefined) {
+      updateData.condition = req.body.condition;
+    }
+
+    // Parse location from FormData (comes as location.city, location.state, etc.)
+    const location = {};
+    if (req.body['location.city']) location.city = req.body['location.city'];
+    if (req.body['location.state']) location.state = req.body['location.state'];
+    if (req.body['location.country']) location.country = req.body['location.country'];
+    if (Object.keys(location).length > 0) {
+      updateData.location = location;
+    }
 
     // Handle new images if uploaded
     if (req.files && req.files.length > 0) {
@@ -263,7 +349,19 @@ router.put('/:id', auth, upload.array('images', 5), handleUploadError, [
           });
         } catch (uploadError) {
           console.error('Cloudinary upload error:', uploadError);
-          return res.status(500).json({ message: 'Error uploading images' });
+          
+          // Provide helpful error messages
+          let errorMessage = uploadError.message || 'Unknown error';
+          
+          if (errorMessage.includes('disabled') || errorMessage.includes('cloud_name is disabled')) {
+            errorMessage = 'Cloudinary account is disabled. Please create a new Cloudinary account and update your credentials in the .env file. See CLOUDINARY_FIX.md for instructions.';
+          } else if (uploadError.http_code === 401) {
+            errorMessage = 'Cloudinary authentication failed. Please check your API credentials in the .env file.';
+          } else if (uploadError.http_code === 400) {
+            errorMessage = 'Invalid image file. Please try a different image.';
+          }
+          
+          return res.status(500).json({ message: `Error uploading images: ${errorMessage}` });
         }
       }
       updateData.images = [...product.images, ...newImages];
@@ -307,6 +405,45 @@ router.delete('/:id', auth, async (req, res) => {
   } catch (error) {
     console.error('Delete product error:', error);
     res.status(500).json({ message: 'Server error while deleting product' });
+  }
+});
+
+// @route   PUT /api/products/:id/mark-sold
+// @desc    Mark a product as sold
+// @access  Private (Seller/Owner)
+router.put('/:id/mark-sold', auth, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Check if user is the seller or admin
+    if (product.seller.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to mark this product as sold' });
+    }
+
+    // Check if product is already sold
+    if (product.status === 'sold') {
+      return res.status(400).json({ message: 'Product is already marked as sold' });
+    }
+
+    // Mark product as sold
+    product.status = 'sold';
+    product.isAvailable = false;
+    product.soldAt = new Date();
+    await product.save();
+
+    const updatedProduct = await Product.findById(req.params.id)
+      .populate('seller', 'name email phone');
+
+    res.json({
+      message: 'Product marked as sold successfully',
+      product: updatedProduct
+    });
+  } catch (error) {
+    console.error('Mark product as sold error:', error);
+    res.status(500).json({ message: 'Server error while marking product as sold' });
   }
 });
 

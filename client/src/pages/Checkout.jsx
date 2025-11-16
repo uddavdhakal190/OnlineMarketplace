@@ -2,18 +2,29 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useQuery } from 'react-query'
+import { useAuth } from '../contexts/AuthContext'
+import toast from 'react-hot-toast'
 import { productsAPI } from '../utils/api'
 import { formatCurrency } from '../utils/helpers'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
-import { ArrowLeft, Shield, Truck, CreditCard } from 'lucide-react'
+import { ArrowLeft, CreditCard } from 'lucide-react'
 
 const Checkout = () => {
   const { productId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [isProcessing, setIsProcessing] = useState(false)
+
+  // Redirect admin users
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      toast.error('Admin cannot purchase products. Admin role is for management only.')
+      navigate('/admin')
+    }
+  }, [user, navigate])
 
   const {
     register,
@@ -38,7 +49,8 @@ const Checkout = () => {
       console.log('Product:', product)
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 3000))
-      navigate('/orders')
+      toast.success('Thank you for your interest! Please contact the seller to complete your purchase.')
+      navigate('/products')
     } catch (error) {
       console.error('Checkout error:', error)
     } finally {
@@ -161,7 +173,7 @@ const Checkout = () => {
                       <CreditCard className="h-6 w-6 text-gray-400" />
                       <div>
                         <p className="font-medium text-gray-900">Credit/Debit Card</p>
-                        <p className="text-sm text-gray-500">Secure payment powered by Stripe</p>
+                        <p className="text-sm text-gray-500">Payment method</p>
                       </div>
                     </div>
                   </div>
@@ -225,21 +237,6 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Trust Badges */}
-              <div className="mt-6 space-y-3">
-                <div className="flex items-center text-sm text-gray-500">
-                  <Shield className="h-4 w-4 mr-2" />
-                  <span>Secure 256-bit SSL encryption</span>
-                </div>
-                <div className="flex items-center text-sm text-gray-500">
-                  <Truck className="h-4 w-4 mr-2" />
-                  <span>Fast and reliable shipping</span>
-                </div>
-                <div className="flex items-center text-sm text-gray-500">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  <span>Protected by Stripe</span>
-                </div>
-              </div>
             </Card>
           </div>
         </div>

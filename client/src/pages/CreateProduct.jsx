@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Upload, X, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useAuth } from '../contexts/AuthContext'
 import { productsAPI } from '../utils/api'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -11,8 +12,27 @@ import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const CreateProduct = () => {
   const navigate = useNavigate()
+  const { user, loading } = useAuth()
   const [images, setImages] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Redirect non-logged-in users to login
+  useEffect(() => {
+    // Wait for auth to finish loading
+    if (loading) return
+    
+    if (user === null) {
+      toast.error('Please login to create a product listing.')
+      navigate('/login', { state: { from: '/create-product' } })
+      return
+    }
+    
+    // Redirect admin users (all other users can create products)
+    if (user && user.role === 'admin') {
+      toast.error('Admin cannot create products. Admin role is for management only.')
+      navigate('/admin')
+    }
+  }, [user, loading, navigate])
 
   const {
     register,
@@ -23,12 +43,10 @@ const CreateProduct = () => {
   const categories = [
     'Electronics',
     'Fashion',
-    'Home & Garden',
     'Sports & Outdoors',
     'Books & Media',
     'Toys & Games',
     'Health & Beauty',
-    'Automotive',
     'Other'
   ]
 
@@ -82,7 +100,7 @@ const CreateProduct = () => {
       formData.append('description', data.description)
       formData.append('price', data.price)
       formData.append('category', data.category)
-      formData.append('condition', data.condition || 'New')
+      formData.append('condition', 'New') // All products are brand new
       
       // Add location (use dot notation for nested objects)
       if (data.location) {
@@ -125,6 +143,20 @@ const CreateProduct = () => {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  // Don't render form if user is not logged in or is admin (will be redirected)
+  if (!user || user.role === 'admin') {
+    return null
   }
 
   return (

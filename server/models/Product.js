@@ -23,12 +23,10 @@ const productSchema = new mongoose.Schema({
     enum: [
       'Electronics',
       'Fashion',
-      'Home & Garden',
       'Sports & Outdoors',
       'Books & Media',
       'Toys & Games',
       'Health & Beauty',
-      'Automotive',
       'Other'
     ]
   },

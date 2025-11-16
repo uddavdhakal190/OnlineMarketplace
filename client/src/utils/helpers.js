@@ -81,9 +81,9 @@ export const isAdmin = (user) => {
   return user?.role === 'admin'
 }
 
-// Check if user is seller
+// Check if user can sell (all users except admin can sell)
 export const isSeller = (user) => {
-  return user?.role === 'seller' || user?.role === 'admin'
+  return user && user.role !== 'admin' // All users except admin can sell
 }
 
 // Check if user can edit product
@@ -99,19 +99,6 @@ export const getStatusColor = (status) => {
     approved: 'bg-green-100 text-green-800',
     rejected: 'bg-red-100 text-red-800',
     sold: 'bg-gray-100 text-gray-800',
-  }
-  return colors[status] || 'bg-gray-100 text-gray-800'
-}
-
-// Get order status color
-export const getOrderStatusColor = (status) => {
-  const colors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    processing: 'bg-blue-100 text-blue-800',
-    shipped: 'bg-purple-100 text-purple-800',
-    delivered: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800',
-    refunded: 'bg-gray-100 text-gray-800',
   }
   return colors[status] || 'bg-gray-100 text-gray-800'
 }
