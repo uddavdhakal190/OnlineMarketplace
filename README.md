@@ -4,7 +4,7 @@ A complete consumer-to-consumer marketplace platform built with the MERN stack, 
 
 ## 🚀 Features
 
-### Core Features
+### Core Feature
 - **User Authentication**: Secure JWT-based authentication with role-based access (Buyer/Seller/Admin)
 - **Product Management**: Create, edit, delete, and manage product listings
 - **Product Browsing**: Advanced search, filtering, and categorization
