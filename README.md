@@ -29,7 +29,6 @@ A complete consumer-to-consumer marketplace platform built with the MERN stack, 
 - **MongoDB** - Database
 - **Mongoose** - ODM
 - **JWT** - Authentication
-- **Stripe** - Payment processing
 - **Cloudinary** - Image storage
 - **Multer** - File upload handling
 
