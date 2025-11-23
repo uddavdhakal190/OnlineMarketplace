@@ -137,8 +137,7 @@ app.get('/', (req, res) => {
       users: '/api/users',
       admin: '/api/admin',
       payments: '/api/payments'
-    },
-    documentation: 'See RENDER_DEPLOYMENT.md for API documentation'
+    }
   });
 });
 
