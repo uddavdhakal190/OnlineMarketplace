@@ -74,7 +74,21 @@ router.post('/register', [
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: error.message || 'Server error during registration' });
+    console.error('Error stack:', error.stack);
+    
+    // Provide more helpful error messages
+    let errorMessage = 'Server error during registration';
+    if (error.message.includes('JWT_SECRET')) {
+      errorMessage = 'Server configuration error. Please contact support.';
+      console.error('⚠️ JWT_SECRET is missing in environment variables!');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    res.status(500).json({ 
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
