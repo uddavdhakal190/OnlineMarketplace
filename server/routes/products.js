@@ -243,7 +243,23 @@ router.post('/', auth, sellerAuth, upload.array('images', 5), handleUploadError,
     });
   } catch (error) {
     console.error('Create product error:', error);
-    res.status(500).json({ message: 'Server error while creating product' });
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    
+    // Provide more detailed error messages
+    let errorMessage = 'Server error while creating product';
+    
+    if (error.name === 'ValidationError') {
+      errorMessage = `Validation error: ${error.message}`;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    res.status(500).json({ 
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

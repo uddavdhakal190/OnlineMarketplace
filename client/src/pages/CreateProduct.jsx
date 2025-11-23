@@ -128,17 +128,29 @@ const CreateProduct = () => {
     } catch (error) {
       console.error('Error creating product:', error)
       console.error('Error response:', error.response?.data)
+      console.error('Error status:', error.response?.status)
+      console.error('Error message:', error.message)
+      console.error('Full error:', JSON.stringify(error, null, 2))
       
       // Get error message from response
       let message = 'Failed to create product. Please try again.'
-      if (error.response?.data?.message) {
-        message = error.response.data.message
-      } else if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
-        message = error.response.data.errors.map(e => e.msg || e.message).join(', ')
+      
+      if (error.response?.data) {
+        if (error.response.data.message) {
+          message = error.response.data.message
+        } else if (error.response.data.errors && Array.isArray(error.response.data.errors)) {
+          message = error.response.data.errors.map(e => e.msg || e.message || e).join(', ')
+        } else if (typeof error.response.data === 'string') {
+          message = error.response.data
+        } else {
+          message = JSON.stringify(error.response.data)
+        }
       } else if (error.message) {
         message = error.message
       }
       
+      // Show detailed error in console for debugging
+      console.error('Displaying error to user:', message)
       toast.error(message)
     } finally {
       setIsSubmitting(false)
