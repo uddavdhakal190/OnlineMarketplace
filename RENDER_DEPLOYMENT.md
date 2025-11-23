@@ -56,8 +56,14 @@ This guide will help you deploy O Mart to Render.com.
 
 4. **Set Environment Variables:**
    ```
-   VITE_API_URL=https://your-backend-url.onrender.com/api
+   VITE_API_URL=https://onlinemarketplace-backend-vx8c.onrender.com/api
    ```
+   
+   **⚠️ IMPORTANT:** 
+   - Replace with your actual backend URL
+   - The URL must include `/api` at the end
+   - After setting, you MUST rebuild the frontend for changes to take effect
+   - Go to Render dashboard → Your frontend service → Manual Deploy → Clear build cache & deploy
 
 5. **Important Notes:**
    - Replace `your-backend-url` with your actual backend Render URL

@@ -21,6 +21,7 @@ app.use(limiter);
 // CORS configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  'https://onlinemarketplace-frontend.onrender.com', // Render frontend URL
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:5173' // Vite default port
@@ -31,13 +32,22 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else if (process.env.NODE_ENV !== 'production') {
+      // In development, allow all origins
       callback(null, true);
     } else {
+      // In production, log and block
+      console.log('CORS blocked origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parsing middleware
