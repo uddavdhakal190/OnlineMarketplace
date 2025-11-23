@@ -38,8 +38,23 @@ const uploadToCloudinary = async (file) => {
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
     
+    // Debug logging
+    console.log('Cloudinary config check:', {
+      hasCloudName: !!cloudName,
+      hasApiKey: !!apiKey,
+      hasApiSecret: !!apiSecret,
+      cloudNameLength: cloudName?.length || 0,
+      apiKeyLength: apiKey?.length || 0,
+      apiSecretLength: apiSecret?.length || 0
+    });
+    
     if (!cloudName || !apiKey || !apiSecret) {
-      return reject(new Error('Cloudinary credentials are not configured. Please check your .env file.'));
+      const missing = [];
+      if (!cloudName) missing.push('CLOUDINARY_CLOUD_NAME');
+      if (!apiKey) missing.push('CLOUDINARY_API_KEY');
+      if (!apiSecret) missing.push('CLOUDINARY_API_SECRET');
+      
+      return reject(new Error(`Cloudinary credentials are not configured. Missing: ${missing.join(', ')}. Please set these in Render environment variables and redeploy.`));
     }
     
     // Verify credentials format
