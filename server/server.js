@@ -122,7 +122,6 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/payments', require('./routes/payments'));
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -135,8 +134,7 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       products: '/api/products',
       users: '/api/users',
-      admin: '/api/admin',
-      payments: '/api/payments'
+      admin: '/api/admin'
     }
   });
 });

@@ -93,11 +93,6 @@ export const adminAPI = {
   getOrders: (params) => api.get('/admin/orders', { params }),
 }
 
-export const paymentsAPI = {
-  createPaymentIntent: (data) => api.post('/payments/create-payment-intent', data),
-  confirmPayment: (data) => api.post('/payments/confirm-payment', data),
-  getOrders: (params) => api.get('/payments/orders', { params }),
-  updateOrderStatus: (id, data) => api.put(`/payments/orders/${id}/status`, data),
-}
+// Payments API removed - using direct buyer-seller contact instead
 
 export default api
