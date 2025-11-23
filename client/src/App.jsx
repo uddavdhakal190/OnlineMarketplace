@@ -15,7 +15,6 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminUsers from './pages/admin/AdminUsers'
 import SellerProfile from './pages/SellerProfile'
-import Checkout from './pages/Checkout'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import Privacy from './pages/Privacy'
@@ -51,7 +50,6 @@ function App() {
           <Route path="/my-products" element={<MyProducts />} />
           <Route path="/create-product" element={<CreateProduct />} />
           <Route path="/edit-product/:id" element={<EditProduct />} />
-          <Route path="/checkout/:productId" element={<Checkout />} />
           
           {/* Admin routes */}
           <Route path="/admin" element={<AdminDashboard />} />

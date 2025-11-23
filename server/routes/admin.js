@@ -2,7 +2,6 @@ const express = require('express');
 const { query } = require('express-validator');
 const Product = require('../models/Product');
 const User = require('../models/User');
-const Order = require('../models/Order');
 const { auth, adminAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -18,40 +17,26 @@ router.get('/dashboard', async (req, res) => {
     const [
       totalUsers,
       totalProducts,
-      totalOrders,
       pendingProducts,
       recentUsers,
-      recentProducts,
-      recentOrders
+      recentProducts
     ] = await Promise.all([
       User.countDocuments(),
       Product.countDocuments(),
-      Order.countDocuments(),
       Product.countDocuments({ status: 'pending' }),
       User.find().sort({ createdAt: -1 }).limit(5).select('name email role createdAt'),
-      Product.find().sort({ createdAt: -1 }).limit(5).populate('seller', 'name email'),
-      Order.find().sort({ createdAt: -1 }).limit(5).populate('buyer seller product', 'name title')
+      Product.find().sort({ createdAt: -1 }).limit(5).populate('seller', 'name email')
     ]);
-
-    // Calculate revenue
-    const revenueResult = await Order.aggregate([
-      { $match: { paymentStatus: 'paid' } },
-      { $group: { _id: null, totalRevenue: { $sum: '$amount' } } }
-    ]);
-    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
 
     res.json({
       stats: {
         totalUsers,
         totalProducts,
-        totalOrders,
-        pendingProducts,
-        totalRevenue
+        pendingProducts
       },
       recent: {
         users: recentUsers,
-        products: recentProducts,
-        orders: recentOrders
+        products: recentProducts
       }
     });
   } catch (error) {
@@ -242,46 +227,6 @@ router.put('/users/:id/toggle-status', async (req, res) => {
   } catch (error) {
     console.error('Toggle user status error:', error);
     res.status(500).json({ message: 'Server error while updating user status' });
-  }
-});
-
-// @route   GET /api/admin/orders
-// @desc    Get all orders for admin management
-// @access  Private (Admin)
-router.get('/orders', [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
-  query('status').optional().isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']).withMessage('Invalid status')
-], async (req, res) => {
-  try {
-    const { page = 1, limit = 20, status } = req.query;
-    const filter = {};
-    
-    if (status) filter.status = status;
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    
-    const orders = await Order.find(filter)
-      .populate('buyer', 'name email')
-      .populate('seller', 'name email')
-      .populate('product', 'title price images')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    const total = await Order.countDocuments(filter);
-
-    res.json({
-      orders,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
-        totalOrders: total
-      }
-    });
-  } catch (error) {
-    console.error('Admin get orders error:', error);
-    res.status(500).json({ message: 'Server error while fetching orders' });
   }
 });
 

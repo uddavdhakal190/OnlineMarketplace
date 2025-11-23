@@ -89,8 +89,7 @@ export const adminAPI = {
   rejectProduct: (id, reason) => api.put(`/admin/products/${id}/reject`, { reason }),
   deleteProduct: (id) => api.delete(`/admin/products/${id}`),
   getUsers: (params) => api.get('/admin/users', { params }),
-  toggleUserStatus: (id) => api.put(`/admin/users/${id}/toggle-status`),
-  getOrders: (params) => api.get('/admin/orders', { params }),
+  toggleUserStatus: (id) => api.put(`/admin/users/${id}/toggle-status`)
 }
 
 // Payments API removed - using direct buyer-seller contact instead
