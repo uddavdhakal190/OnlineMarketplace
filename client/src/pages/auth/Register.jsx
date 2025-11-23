@@ -91,20 +91,19 @@ const Register = () => {
 
               <div>
                 <Input
-                  label="Email address (Gmail only)"
+                  label="Email address"
                   type="email"
                   autoComplete="email"
-                  placeholder="yourname@gmail.com"
+                  placeholder="yourname@example.com"
                   error={errors.email?.message}
                   {...register('email', {
                     required: 'Email is required',
                     pattern: {
-                      value: /^[a-zA-Z0-9._%+-]+@gmail\.com$/i,
-                      message: 'Please use a Gmail address (e.g., yourname@gmail.com)'
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: 'Please enter a valid email address'
                     }
                   })}
                 />
-                <p className="text-xs text-gray-500 mt-1">Only Gmail addresses are accepted</p>
               </div>
 
               <div>

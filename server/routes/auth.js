@@ -36,11 +36,6 @@ router.post('/register', [
     // All users are registered as 'buyer' by default, but they can both buy and sell
     const role = 'buyer';
 
-    // Simple email check - prefer Gmail but allow others
-    if (!email.toLowerCase().includes('@gmail.com')) {
-      return res.status(400).json({ message: 'Please use a Gmail address (e.g., yourname@gmail.com)' });
-    }
-
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {

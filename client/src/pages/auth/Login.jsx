@@ -74,7 +74,7 @@ const Login = () => {
                 label="Email address"
                 type="email"
                 autoComplete="email"
-                placeholder="yourname@gmail.com"
+                placeholder="yourname@example.com"
                 error={errors.email?.message}
                 {...register('email', {
                   required: 'Email is required',
