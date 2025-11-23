@@ -114,13 +114,32 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/payments', require('./routes/payments'));
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'O Mart API Server',
+    status: 'running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      products: '/api/products',
+      users: '/api/users',
+      admin: '/api/admin',
+      payments: '/api/payments'
+    },
+    documentation: 'See RENDER_DEPLOYMENT.md for API documentation'
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.json({ 
     status: 'OK', 
     message: 'Server is running',
-    database: dbStatus
+    database: dbStatus,
+    timestamp: new Date().toISOString()
   });
 });
 
