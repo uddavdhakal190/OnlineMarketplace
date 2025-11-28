@@ -2,7 +2,7 @@
 
 A simple, community-driven consumer-to-consumer marketplace platform built with the MERN stack, designed exclusively for Finland. Users can buy and sell new products through direct contact with sellers.
 
-## 🚀 Feature
+## 🚀 Features
 
 ### Core Features
 - **User Authentication**: Secure JWT-based authentication with any email address
