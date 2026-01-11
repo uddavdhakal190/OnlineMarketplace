@@ -80,7 +80,7 @@ router.post('/register', [
     let errorMessage = 'Server error during registration';
     if (error.message.includes('JWT_SECRET')) {
       errorMessage = 'Server configuration error. Please contact support.';
-      console.error('⚠️ JWT_SECRET is missing in environment variables!');
+      console.error(' JWT_SECRET is missing in environment variables!');
     } else if (error.message) {
       errorMessage = error.message;
     }
@@ -149,7 +149,7 @@ router.post('/login', [
     let errorMessage = 'Server error during login';
     if (error.message.includes('JWT_SECRET')) {
       errorMessage = 'Server configuration error. Please contact support.';
-      console.error('⚠️ JWT_SECRET is missing in environment variables!');
+      console.error(' JWT_SECRET is missing in environment variables!');
     } else if (error.message) {
       errorMessage = error.message;
     }

@@ -1,0 +1,778 @@
+# O Mart - C2C Marketplace Platform (Finland)
+
+A simple, community-driven consumer-to-consumer marketplace platform built with the MERN stack, designed exclusively for Finland. Users can buy and sell new products through direct contact with sellers.
+
+## 🚀 Features
+
+### Core Features
+- **User Authentication**: Secure JWT-based authentication with any email address
+- **Product Management**: Create, edit, delete, and manage product listings
+- **Product Browsing**: Advanced search, filtering, and categorization
+- **Admin Panel**: Complete admin dashboard for managing products and users
+- **Direct Contact**: Buyers contact sellers directly via email or phone
+- **Finland Only**: Marketplace available exclusively in Finland
+- **Finnish Localization**: All prices in Euros (€), Finnish postal codes, and location support
+- **Image Upload**: Cloudinary integration for product images
+- **Mark as Sold**: Sellers can manually mark products as sold
+- **Responsive Design**: Mobile-first design with Tailwind CSS
+- **New Products Only**: All products are brand new
+
+### User Roles
+- **Users**: Can both buy and sell products (all registered users)
+- **Admins**: Manage products and users (cannot buy or sell)
+
+### Product Categories
+- Electronics
+- Fashion
+- Sports & Outdoors
+- Books & Media
+- Toys & Games
+- Health & Beauty
+- Other
+
+---
+
+## 🛠️ Tech Stack - Detailed Overview
+
+This section provides a comprehensive explanation of every technology used in the project, why it was chosen, and where/how it's implemented.
+
+### **Frontend Technologies**
+
+#### **React 18** (`react`, `react-dom`)
+- **What**: A JavaScript library for building user interfaces using a component-based architecture
+- **Why**: 
+  - Enables building reusable, maintainable UI components
+  - Provides efficient rendering with Virtual DOM
+  - Large ecosystem and community support
+  - Declarative syntax makes code easier to understand
+- **Where/How**: 
+  - Used throughout the entire frontend application
+  - All pages (`src/pages/`) are React components
+  - UI components (`src/components/ui/`) are reusable React components
+  - Layout components (`src/components/layout/`) structure the app
+  - Example: `App.jsx` uses React Router to render different page components based on routes
+
+#### **Vite** (`vite`, `@vitejs/plugin-react`)
+- **What**: Next-generation frontend build tool and development server
+- **Why**: 
+  - Extremely fast development server startup (compared to Create React App)
+  - Instant Hot Module Replacement (HMR) for rapid development
+  - Optimized production builds with code splitting
+  - Native ES modules support
+- **Where/How**: 
+  - Configured in `client/vite.config.js`
+  - Development server runs on port 3000 (configurable)
+  - Proxy configuration routes `/api` requests to backend (`http://localhost:5001`)
+  - Build command: `npm run build` creates optimized production bundle in `dist/`
+  - Used as the build tool instead of Webpack for better performance
+
+#### **React Router DOM** (`react-router-dom`)
+- **What**: Declarative routing library for React applications
+- **Why**: 
+  - Enables single-page application (SPA) behavior without page reloads
+  - Client-side routing for better user experience
+  - Supports protected routes and nested routing
+  - URL-based navigation with browser history support
+- **Where/How**: 
+  - Configured in `client/src/App.jsx`
+  - Defines all application routes (public, protected, admin)
+  - Uses `<Routes>` and `<Route>` components to map URLs to page components
+  - Example: `/products/:id` route renders `ProductDetail` component
+  - Protected routes check authentication before rendering
+  - Admin routes require admin role verification
+
+#### **Tailwind CSS** (`tailwindcss`, `autoprefixer`, `postcss`)
+- **What**: Utility-first CSS framework for rapid UI development
+- **Why**: 
+  - Rapid development with utility classes (no custom CSS files needed)
+  - Consistent design system with predefined spacing, colors, and typography
+  - Responsive design utilities built-in
+  - Small production bundle size (unused styles are purged)
+  - Highly customizable through configuration
+- **Where/How**: 
+  - Configured in `client/tailwind.config.js` with custom color palette and animations
+  - Used throughout all components via utility classes
+  - Example: `className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded"`
+  - Responsive utilities: `md:grid-cols-2 lg:grid-cols-3` for responsive grids
+  - Custom theme extends default Tailwind with project-specific colors and animations
+  - Imported in `client/src/index.css` with `@tailwind` directives
+
+#### **React Query** (`react-query`)
+- **What**: Powerful data synchronization library for React
+- **Why**: 
+  - Automatic caching of API responses
+  - Background data refetching
+  - Built-in loading and error states
+  - Reduces boilerplate code for data fetching
+  - Optimistic updates support
+- **Where/How**: 
+  - Used in `client/src/pages/Products.jsx` for fetching product listings
+  - Wraps API calls with `useQuery` hook
+  - Automatically caches product data to reduce API calls
+  - Handles loading states and error states automatically
+  - Example: `useQuery(['products', params], () => productsAPI.getProducts(params))`
+  - Query keys enable automatic cache invalidation and refetching
+
+#### **React Hook Form** (`react-hook-form`)
+- **What**: Performant form library with easy validation
+- **Why**: 
+  - Minimal re-renders (uses uncontrolled components)
+  - Built-in validation support
+  - Easy integration with validation libraries
+  - Better performance than controlled form components
+  - Less boilerplate code
+- **Where/How**: 
+  - Used in all form components: `Login.jsx`, `Register.jsx`, `CreateProduct.jsx`, `EditProduct.jsx`
+  - Uses `useForm` hook to manage form state
+  - `register()` function connects inputs to form state
+  - Validation rules defined inline: `{ required: 'Field is required', minLength: { value: 6, message: 'Min 6 characters' } }`
+  - `handleSubmit()` wraps form submission with validation
+  - Error messages displayed via `formState.errors`
+
+#### **Axios** (`axios`)
+- **What**: Promise-based HTTP client for making API requests
+- **Why**: 
+  - Cleaner API than native `fetch()`
+  - Automatic JSON data transformation
+  - Request/response interceptors for global configuration
+  - Better error handling
+  - Request cancellation support
+- **Where/How**: 
+  - Configured in `client/src/utils/api.js`
+  - Creates axios instance with base URL from environment variables
+  - Request interceptor adds JWT token to all authenticated requests
+  - Response interceptor handles 401 errors (unauthorized) by redirecting to login
+  - Used throughout the app via `api.js` functions: `authAPI.login()`, `productsAPI.getProducts()`, etc.
+  - Handles FormData for file uploads (removes Content-Type header automatically)
+
+#### **React Hot Toast** (`react-hot-toast`)
+- **What**: Lightweight toast notification library
+- **Why**: 
+  - Beautiful, customizable toast notifications
+  - Lightweight and performant
+  - Easy to use API
+  - Supports success, error, loading states
+- **Where/How**: 
+  - Used throughout the application for user feedback
+  - Success messages: `toast.success('Product created successfully!')`
+  - Error messages: `toast.error('Login failed')`
+  - Imported in components that need notifications
+  - Provides non-intrusive user feedback for actions
+
+#### **Lucide React** (`lucide-react`)
+- **What**: Beautiful, customizable icon library
+- **Why**: 
+  - Consistent icon design
+  - Tree-shakeable (only imports used icons)
+  - React-friendly API
+  - Large icon collection
+- **Where/How**: 
+  - Used in navigation, buttons, and UI elements
+  - Example: `<Search />`, `<ShoppingCart />`, `<User />` icons
+  - Imported as needed: `import { Search, User, ShoppingCart } from 'lucide-react'`
+
+#### **Additional Frontend Libraries**
+- **`clsx`**: Utility for constructing className strings conditionally
+- **`react-dropzone`**: File upload component with drag-and-drop support
+- **`react-intersection-observer`**: For lazy loading and infinite scroll features
+
+---
+
+### **Backend Technologies**
+
+#### **Node.js**
+- **What**: JavaScript runtime environment built on Chrome's V8 engine
+- **Why**: 
+  - Enables JavaScript on the server-side
+  - Same language for frontend and backend (reduces context switching)
+  - Event-driven, non-blocking I/O for high performance
+  - Large ecosystem of packages (npm)
+  - Excellent for building scalable network applications
+- **Where/How**: 
+  - Runtime environment for the entire backend
+  - Executes `server/server.js` as the entry point
+  - Handles HTTP requests, file operations, and database connections
+  - Package management through npm (Node Package Manager)
+
+#### **Express.js** (`express`)
+- **What**: Minimal and flexible web application framework for Node.js
+- **Why**: 
+  - Simplifies HTTP server creation and routing
+  - Extensive middleware ecosystem
+  - RESTful API development support
+  - Large community and documentation
+  - Flexible and unopinionated
+- **Where/How**: 
+  - Main framework in `server/server.js`
+  - Creates Express app: `const app = express()`
+  - Defines routes: `app.use('/api/auth', require('./routes/auth'))`
+  - Middleware stack: CORS, body parsing, authentication, error handling
+  - Handles all HTTP requests (GET, POST, PUT, DELETE)
+  - Serves RESTful API endpoints for frontend consumption
+
+#### **MongoDB**
+- **What**: NoSQL document database that stores data in flexible, JSON-like documents
+- **Why**: 
+  - Flexible schema (easy to modify as requirements change)
+  - JavaScript-friendly (native JSON support)
+  - Horizontal scalability
+  - Good performance for read-heavy workloads (like marketplaces)
+  - Free tier available (MongoDB Atlas)
+- **Where/How**: 
+  - Cloud-hosted via MongoDB Atlas (or local MongoDB)
+  - Connection string stored in `MONGODB_URI` environment variable
+  - Connected in `server/server.js` using Mongoose
+  - Stores two main collections: `users` and `products`
+  - Indexes created for performance: text search, category, price filtering
+
+#### **Mongoose** (`mongoose`)
+- **What**: MongoDB object modeling tool (ODM - Object Document Mapper)
+- **Why**: 
+  - Schema validation and data modeling
+  - Built-in type casting
+  - Middleware support (pre/post hooks)
+  - Query building and population (relationships)
+  - Prevents SQL injection and validates data
+- **Where/How**: 
+  - Models defined in `server/models/User.js` and `server/models/Product.js`
+  - Schemas define data structure, validation rules, and indexes
+  - Used in routes: `await User.findOne({ email })`, `await Product.create(data)`
+  - Middleware hooks: password hashing before saving users
+  - Population: `Product.find().populate('seller')` to get seller details
+  - Indexes: `productSchema.index({ title: 'text', description: 'text' })`
+
+#### **JSON Web Token** (`jsonwebtoken`)
+- **What**: Standard for securely transmitting information as JSON objects
+- **Why**: 
+  - Stateless authentication (no server-side session storage needed)
+  - Scalable (works across multiple servers)
+  - Self-contained (includes user info in token)
+  - Industry standard for REST APIs
+- **Where/How**: 
+  - Token generation in `server/routes/auth.js`: `jwt.sign({ userId }, JWT_SECRET, { expiresIn: '200d' })`
+  - Token verification in `server/middleware/auth.js`: `jwt.verify(token, JWT_SECRET)`
+  - Tokens sent to client after login/registration
+  - Client includes token in `Authorization: Bearer <token>` header
+  - Middleware extracts and validates token on protected routes
+
+#### **bcryptjs** (`bcryptjs`)
+- **What**: Library for hashing passwords using bcrypt algorithm
+- **Why**: 
+  - Industry-standard password hashing
+  - Salt rounds prevent rainbow table attacks
+  - Slow by design (prevents brute force attacks)
+  - One-way hashing (passwords cannot be decrypted)
+- **Where/How**: 
+  - Used in `server/models/User.js` pre-save hook
+  - Password hashed before saving: `await bcrypt.hash(password, 10)` (10 salt rounds)
+  - Password comparison: `await bcrypt.compare(candidatePassword, hashedPassword)`
+  - Never stores plain text passwords in database
+  - Used during login to verify user credentials
+
+#### **Multer** (`multer`)
+- **What**: Middleware for handling `multipart/form-data` (file uploads)
+- **Why**: 
+  - Handles file uploads in Express
+  - Memory storage option (no disk writes needed)
+  - File validation (type, size)
+  - Easy integration with Express routes
+- **Where/How**: 
+  - Configured in `server/middleware/upload.js`
+  - Memory storage: `multer.memoryStorage()` (files in RAM before Cloudinary upload)
+  - File filter: only accepts `image/*` MIME types
+  - Size limit: 5MB per file, maximum 5 files
+  - Used in product routes: `upload.array('images', 5)` middleware
+  - Files accessible via `req.files` array in route handlers
+
+#### **Cloudinary** (`cloudinary`)
+- **What**: Cloud-based image and video management service
+- **Why**: 
+  - Automatic image optimization and transformation
+  - CDN delivery for fast image loading
+  - Free tier available
+  - Handles image resizing, cropping, format conversion
+  - Reduces server storage and bandwidth
+- **Where/How**: 
+  - Configured in `server/middleware/upload.js` with credentials from environment variables
+  - Uploads images from Multer buffers: `cloudinary.uploader.upload_stream()`
+  - Stores images in `mart/products/` folder on Cloudinary
+  - Returns URLs and public IDs stored in MongoDB
+  - Image transformations: `width: 800, height: 600, crop: 'limit', quality: 'auto'`
+  - Used when creating/updating products with images
+
+#### **express-validator** (`express-validator`)
+- **What**: Set of express.js middlewares for input validation and sanitization
+- **Why**: 
+  - Prevents invalid data from reaching database
+  - Protects against injection attacks
+  - Clean validation syntax
+  - Built-in validators (email, length, etc.)
+- **Where/How**: 
+  - Used in `server/routes/auth.js` for registration and login validation
+  - Example: `body('email').isEmail().normalizeEmail()`
+  - Example: `body('password').isLength({ min: 6 })`
+  - Validation errors returned to client before processing
+  - Sanitizes input (normalizes email, trims strings)
+
+#### **CORS** (`cors`)
+- **What**: Express middleware for enabling Cross-Origin Resource Sharing
+- **Why**: 
+  - Allows frontend (different origin) to access backend API
+  - Security: restricts which origins can access API
+  - Required for SPA (Single Page Applications)
+- **Where/How**: 
+  - Configured in `server/server.js`
+  - Whitelist of allowed origins (frontend URLs)
+  - Development: allows all origins
+  - Production: only allows specified frontend URL
+  - Handles preflight OPTIONS requests automatically
+
+#### **Helmet** (`helmet`)
+- **What**: Express middleware that sets various HTTP headers for security
+- **Why**: 
+  - Protects against common web vulnerabilities
+  - Sets security headers (X-Content-Type-Options, X-Frame-Options, etc.)
+  - Prevents clickjacking, XSS attacks
+  - Easy to implement
+- **Where/How**: 
+  - Applied globally in `server/server.js`: `app.use(helmet())`
+  - Automatically sets security headers on all responses
+  - No configuration needed (works out of the box)
+
+#### **express-rate-limit** (`express-rate-limit`)
+- **What**: Basic rate-limiting middleware for Express
+- **Why**: 
+  - Prevents API abuse and DDoS attacks
+  - Limits requests per IP address
+  - Protects server resources
+- **Where/How**: 
+  - Configured in `server/server.js`
+  - Limits: 100 requests per 15 minutes per IP
+  - Applied globally to all routes
+  - Returns 429 (Too Many Requests) when limit exceeded
+
+#### **dotenv** (`dotenv`)
+- **What**: Loads environment variables from `.env` file
+- **Why**: 
+  - Keeps sensitive data (API keys, secrets) out of code
+  - Different configurations for development/production
+  - Security best practice
+- **Where/How**: 
+  - Loaded at start of `server/server.js`: `require('dotenv').config()`
+  - Accesses variables: `process.env.MONGODB_URI`
+  - `.env` file not committed to Git (in `.gitignore`)
+  - Production uses Render environment variables
+
+#### **Nodemon** (`nodemon`) - Development Only
+- **What**: Utility that monitors for file changes and automatically restarts server
+- **Why**: 
+  - Speeds up development workflow
+  - No manual server restarts needed
+  - Watches for file changes in project
+- **Where/How**: 
+  - Used in development: `npm run dev` runs `nodemon server.js`
+  - Automatically restarts when `server.js` or route files change
+  - Not included in production build
+
+---
+
+### **Development Tools**
+
+#### **ESLint** (`eslint`, `eslint-plugin-react`)
+- **What**: JavaScript linter for identifying code problems
+- **Why**: 
+  - Catches bugs and errors early
+  - Enforces code style consistency
+  - Improves code quality
+- **Where/How**: 
+  - Configured in `client/package.json` scripts: `npm run lint`
+  - Checks React code for common issues
+  - Runs during development to catch errors
+
+#### **Git & GitHub**
+- **What**: Version control system and code hosting platform
+- **Why**: 
+  - Tracks code changes and history
+  - Enables collaboration
+  - Backup and recovery
+  - Deployment integration (Render connects to GitHub)
+- **Where/How**: 
+  - Repository hosted on GitHub
+  - Git tracks all code changes
+  - Render deploys automatically from GitHub pushes
+  - Branch strategy: `main` branch for production
+
+---
+
+### **Third-Party Services**
+
+#### **MongoDB Atlas**
+- **What**: Cloud-hosted MongoDB database service
+- **Why**: 
+  - No local database setup needed
+  - Automatic backups and scaling
+  - Free tier available
+  - Global clusters for performance
+- **Where/How**: 
+  - Database hosted on MongoDB Atlas cloud
+  - Connection string: `mongodb+srv://...` stored in `MONGODB_URI`
+  - Network Access configured to allow Render IPs
+  - Collections: `users`, `products`
+
+#### **Cloudinary**
+- **What**: Cloud-based image and video management platform
+- **Why**: 
+  - Image storage and optimization
+  - CDN delivery for fast loading
+  - Automatic image transformations
+  - Free tier with generous limits
+- **Where/How**: 
+  - Account created at cloudinary.com
+  - Credentials (cloud name, API key, secret) in environment variables
+  - Images uploaded from backend when products created
+  - Image URLs stored in MongoDB, served via Cloudinary CDN
+
+#### **Render**
+- **What**: Cloud platform for hosting web services and static sites
+- **Why**: 
+  - Free tier for both backend and frontend
+  - Automatic deployments from GitHub
+  - SSL certificates included
+  - Easy environment variable configuration
+- **Where/How**: 
+  - Backend: Web Service on Render
+  - Frontend: Static Site on Render
+  - Environment variables configured in Render dashboard
+  - Automatic deployments on Git push to main branch
+
+---
+
+## 📦 Installation & Setup
+
+### Prerequisites
+- Node.js (v16 or higher)
+- MongoDB Atlas account (free tier available)
+- Cloudinary account (free tier available)
+- Git (for version control)
+
+### Backend Setup
+
+1. **Navigate to server directory**
+   ```bash
+   cd server
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Configuration**
+   
+   Create a `.env` file in the `server` directory:
+   ```env
+   NODE_ENV=development
+   PORT=5001
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/mart?retryWrites=true&w=majority
+   JWT_SECRET=your_jwt_secret_key_min_32_characters
+   JWT_EXPIRE=200d
+   CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+   CLOUDINARY_API_KEY=your_cloudinary_api_key
+   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+   FRONTEND_URL=http://localhost:3000
+   ```
+
+4. **Start the server**
+   ```bash
+   npm run dev
+   ```
+
+### Frontend Setup
+
+1. **Navigate to client directory**
+   ```bash
+   cd client
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Configuration**
+   
+   Create a `.env` file in the `client` directory:
+   ```env
+   VITE_API_URL=http://localhost:5001/api
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+## 🔧 Configuration
+
+### MongoDB Setup
+1. Create a MongoDB Atlas account at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+2. Create a new cluster (free tier M0 available)
+3. Create a database user and get your connection string
+4. Update `MONGODB_URI` in your `.env` file
+5. Add your IP address to Network Access (or use `0.0.0.0/0` for development)
+6. For production, add Render's IP ranges to Network Access
+
+### Cloudinary Setup
+1. Create a Cloudinary account at [cloudinary.com](https://cloudinary.com) (free tier available)
+2. Get your cloud name, API key, and API secret from Dashboard
+3. Update the Cloudinary credentials in your `.env` file
+4. Images will be stored in `mart/products/` folder on Cloudinary
+
+### Generate JWT Secret
+You can generate a secure JWT secret using:
+```bash
+openssl rand -base64 48 | tr -d "=+/" | cut -c1-64
+```
+
+Or use Node.js:
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+## 📁 Project Structure
+
+```
+Mart/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   │   ├── layout/    # Navbar, Footer
+│   │   │   └── ui/        # Button, Card, Input, LoadingSpinner
+│   │   ├── contexts/      # AuthContext (global auth state)
+│   │   ├── pages/         # Page components
+│   │   │   ├── auth/      # Login, Register
+│   │   │   ├── admin/     # AdminDashboard, AdminProducts, AdminUsers
+│   │   │   └── ...        # Home, Products, ProductDetail, Profile, etc.
+│   │   ├── utils/         # API client, helper functions
+│   │   ├── App.jsx        # Main app component with routing
+│   │   ├── main.jsx       # React entry point
+│   │   └── index.css      # Global styles, Tailwind imports
+│   ├── public/            # Static assets
+│   ├── package.json       # Frontend dependencies
+│   ├── vite.config.js     # Vite configuration
+│   └── tailwind.config.js # Tailwind CSS configuration
+│
+├── server/                # Express backend
+│   ├── models/            # Mongoose models
+│   │   ├── User.js        # User schema and model
+│   │   └── Product.js     # Product schema and model
+│   ├── routes/            # API route handlers
+│   │   ├── auth.js        # Authentication routes
+│   │   ├── products.js    # Product CRUD routes
+│   │   ├── users.js       # User profile routes
+│   │   └── admin.js       # Admin-only routes
+│   ├── middleware/        # Express middleware
+│   │   ├── auth.js        # JWT authentication middleware
+│   │   └── upload.js      # Multer & Cloudinary upload middleware
+│   ├── server.js          # Express app entry point
+│   ├── package.json       # Backend dependencies
+│   └── .env              # Environment variables (not in Git)
+│
+└── README.md             # This file
+```
+
+## 🚀 Deployment
+
+### Deploy to Render
+
+#### Backend Deployment
+1. Create a new **Web Service** on [Render](https://render.com)
+2. Connect your GitHub repository
+3. Configure:
+   - **Name**: `omart-backend` (or your choice)
+   - **Environment**: `Node`
+   - **Build Command**: `cd server && npm install`
+   - **Start Command**: `cd server && npm start`
+   - **Root Directory**: Leave empty (or set to repository root)
+4. Set environment variables in Render dashboard:
+   - `NODE_ENV=production`
+   - `PORT=10000` (Render assigns port automatically, but can specify)
+   - `MONGODB_URI=your_mongodb_atlas_connection_string`
+   - `JWT_SECRET=your_jwt_secret`
+   - `JWT_EXPIRE=200d`
+   - `CLOUDINARY_CLOUD_NAME=your_cloud_name`
+   - `CLOUDINARY_API_KEY=your_api_key`
+   - `CLOUDINARY_API_SECRET=your_api_secret`
+   - `FRONTEND_URL=https://your-frontend-url.onrender.com`
+5. Deploy
+
+#### Frontend Deployment
+1. Create a new **Static Site** on [Render](https://render.com)
+2. Connect your GitHub repository
+3. Configure:
+   - **Name**: `omart-frontend` (or your choice)
+   - **Build Command**: `cd client && npm install && npm run build`
+   - **Publish Directory**: `client/dist`
+4. Set environment variable:
+   - `VITE_API_URL=https://your-backend-url.onrender.com/api`
+5. **Important**: After setting `VITE_API_URL`, you must **Clear build cache & redeploy** for changes to take effect
+6. Deploy
+
+#### MongoDB Atlas Network Access
+- Add Render's IP ranges or use `0.0.0.0/0` (less secure, but simpler)
+- For production, consider whitelisting specific Render IPs
+
+## 🔐 Security Features
+
+- **JWT Authentication**: Stateless, secure token-based authentication
+- **Password Hashing**: bcrypt with 10 salt rounds
+- **Input Validation**: express-validator and React Hook Form validation
+- **Rate Limiting**: 100 requests per 15 minutes per IP
+- **CORS**: Configured to allow only specified origins
+- **Helmet.js**: Security headers on all responses
+- **File Upload Validation**: Images only, 5MB max, type checking
+- **Protected Routes**: Authentication and authorization middleware
+- **Environment Variables**: Sensitive data stored in environment variables, not code
+
+## 📱 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - User registration (any email)
+- `POST /api/auth/login` - User login
+- `GET /api/auth/me` - Get current user profile
+- `PUT /api/auth/profile` - Update user profile
+
+### Products
+- `GET /api/products` - Get all products (with filters, search, pagination)
+  - Query params: `category`, `minPrice`, `maxPrice`, `search`, `sortBy`, `sortOrder`, `page`, `limit`
+- `GET /api/products/:id` - Get single product by ID
+- `POST /api/products` - Create product (requires auth, seller role)
+- `PUT /api/products/:id` - Update product (owner or admin only)
+- `PUT /api/products/:id/mark-sold` - Mark product as sold
+- `DELETE /api/products/:id` - Delete product (owner or admin only)
+- `GET /api/products/seller/my-products` - Get seller's products
+
+### Users
+- `GET /api/users/profile` - Get current user profile
+- `PUT /api/users/profile` - Update user profile
+- `GET /api/users/my-products` - Get current user's products
+- `GET /api/users/seller/:id` - Get seller profile by ID
+
+### Admin
+- `GET /api/admin/dashboard` - Admin dashboard statistics
+- `GET /api/admin/products` - Get all products (including pending)
+- `PUT /api/admin/products/:id/approve` - Approve product
+- `PUT /api/admin/products/:id/reject` - Reject product
+- `DELETE /api/admin/products/:id` - Delete product (admin)
+- `GET /api/admin/users` - Get all users
+- `PUT /api/admin/users/:id/toggle-status` - Toggle user active status
+
+### Health Check
+- `GET /api/health` - Server and database health status
+- `GET /` - API information and available endpoints
+
+## 🎯 How It Works
+
+1. **Registration**: Users register with any email address (not just Gmail)
+2. **Product Listing**: Users create product listings with images (admin approval required)
+3. **Admin Moderation**: Admins review and approve/reject product listings
+4. **Browsing**: Buyers browse, search, filter, and sort products
+5. **Product Details**: Buyers view product details and seller contact information
+6. **Direct Contact**: Buyers contact sellers directly via email/phone (outside platform)
+7. **Mark as Sold**: Seller marks product as sold when transaction completes
+8. **Product Management**: Sellers can edit or delete their own products
+
+## 🔧 Troubleshooting
+
+### Port Already in Use Error
+
+If you see `Error: listen EADDRINUSE: address already in use :::5001`:
+
+**Quick Fix:**
+```bash
+# Kill process on port 5001
+lsof -ti:5001 | xargs kill -9
+
+# Then restart server
+cd server && npm run dev
+```
+
+**For frontend port (3000 or 5173):**
+```bash
+lsof -ti:3000 | xargs kill -9
+# or
+lsof -ti:5173 | xargs kill -9
+```
+
+### Cloudinary Upload Errors
+
+- Verify credentials are set in `.env` file
+- Check Cloudinary account is active
+- Ensure images are valid format (JPG, PNG, WebP) and under 5MB
+- Check Cloudinary dashboard for upload logs
+
+### Database Connection Issues
+
+- Verify MongoDB Atlas Network Access allows your IP
+- Check `MONGODB_URI` is correct (no extra spaces)
+- Ensure MongoDB cluster is running (not paused)
+- Check connection string includes database name: `...mongodb.net/mart?...`
+
+### CORS Errors
+
+- Verify `FRONTEND_URL` in backend matches your frontend URL exactly
+- Check backend CORS configuration includes your frontend origin
+- Ensure no trailing slashes in URLs
+- For production, verify Render frontend URL is in allowed origins
+
+### JWT Token Errors
+
+- Verify `JWT_SECRET` is set in environment variables
+- Ensure JWT secret is at least 32 characters
+- Check token expiration settings
+- Clear browser localStorage and re-login if tokens are corrupted
+
+### Build Errors
+
+- Clear `node_modules` and reinstall: `rm -rf node_modules && npm install`
+- Clear Vite cache: `rm -rf client/node_modules/.vite`
+- Check Node.js version: `node --version` (should be v16+)
+- Verify all environment variables are set
+
+## 📄 Pages
+
+### Public Pages
+- **Home** (`/`) - Landing page with featured products
+- **Products** (`/products`) - Browse all products with search, filters, sorting
+- **Product Detail** (`/products/:id`) - View single product with seller contact
+- **Seller Profile** (`/seller/:id`) - View seller's profile and products
+- **Login** (`/login`) - User login page
+- **Register** (`/register`) - User registration page
+- **About** (`/about`) - About O Mart
+- **Contact** (`/contact`) - Contact information
+- **Privacy Policy** (`/privacy`) - Privacy policy page
+- **Terms of Service** (`/terms`) - Terms of service page
+
+### Protected Pages (Require Authentication)
+- **Profile** (`/profile`) - User's own profile and settings
+- **My Products** (`/my-products`) - User's product listings
+- **Create Product** (`/create-product`) - Create new product listing
+- **Edit Product** (`/edit-product/:id`) - Edit existing product
+
+### Admin Pages (Require Admin Role)
+- **Admin Dashboard** (`/admin`) - Admin overview with statistics
+- **Admin Products** (`/admin/products`) - Manage all products (approve/reject)
+- **Admin Users** (`/admin/users`) - Manage all users
+
+## 🆘 Support
+
+For support, email **support@omart.fi** or create an issue in the repository.
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+---
+
+**Built with ❤️ for the Finland community**
+
+**© 2025 O Mart. All rights reserved.**

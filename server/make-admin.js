@@ -14,7 +14,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mart', {
   const email = process.argv[2];
   
   if (!email) {
-    console.error('❌ Please provide your email address');
+    console.error(' Please provide your email address');
     console.log('Usage: node make-admin.js your-email@gmail.com');
     process.exit(1);
   }
@@ -24,7 +24,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mart', {
     const user = await User.findOne({ email });
     
     if (!user) {
-      console.error(`❌ User with email ${email} not found`);
+      console.error(` User with email ${email} not found`);
       process.exit(1);
     }
     
@@ -32,7 +32,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mart', {
     user.role = 'admin';
     await user.save();
     
-    console.log('✅ Success!');
+    console.log(' Success!');
     console.log(`User ${user.name} (${user.email}) is now an admin`);
     console.log('\nYou can now:');
     console.log('- Access admin panel at /admin');

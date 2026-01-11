@@ -66,28 +66,28 @@ const connectDB = async () => {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mart';
     
     if (!process.env.MONGODB_URI) {
-      console.warn('⚠️  Warning: MONGODB_URI not found in .env, using default localhost connection');
+      console.warn('Warning: MONGODB_URI not found in .env, using default localhost connection');
     }
     
     await mongoose.connect(mongoURI, mongooseOptions);
-    console.log('✅ MongoDB connected successfully');
+    console.log('MongoDB connected successfully');
     
     // Handle connection events
     mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB connection error:', err);
+      console.error('MongoDB connection error:', err);
     });
     
     mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
+      console.warn('MongoDB disconnected. Attempting to reconnect...');
     });
     
     mongoose.connection.on('reconnected', () => {
-      console.log('✅ MongoDB reconnected');
+      console.log('MongoDB reconnected');
     });
     
     return true;
   } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
+    console.error('MongoDB connection error:', error);
     console.error('Error details:', {
       message: error.message,
       name: error.name,
@@ -95,7 +95,7 @@ const connectDB = async () => {
     });
     
     if (error.name === 'MongooseServerSelectionError') {
-      console.error('\n💡 Troubleshooting tips:');
+      console.error('\n Troubleshooting tips:');
       console.error('1. Check if MONGODB_URI is correct in your .env file');
       console.error('2. Verify your IP is whitelisted in MongoDB Atlas Network Access');
       console.error('3. Check your internet connection');
@@ -170,21 +170,21 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   // Start the server first
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log('⏳ Attempting to connect to MongoDB...');
+    console.log(` Server running on port ${PORT}`);
+    console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(' Attempting to connect to MongoDB...');
   });
 
   // Attempt MongoDB connection (non-blocking)
   try {
     await connectDB();
   } catch (error) {
-    console.error('⚠️  MongoDB connection failed. Server is running but database operations will fail.');
-    console.error('💡 Please check:');
+    console.error(' MongoDB connection failed. Server is running but database operations will fail.');
+    console.error(' Please check:');
     console.error('   1. Your IP is whitelisted in MongoDB Atlas Network Access');
     console.error('   2. MONGODB_URI is correct in your .env file');
     console.error('   3. Your internet connection is working');
-    console.error('\n🔄 Server will retry connection automatically when MongoDB becomes available.');
+    console.error('\n Server will retry connection automatically when MongoDB becomes available.');
     
     // Retry connection every 10 seconds
     const retryInterval = setInterval(async () => {
@@ -192,7 +192,7 @@ const startServer = async () => {
         if (mongoose.connection.readyState === 0) {
           await connectDB();
           clearInterval(retryInterval);
-          console.log('✅ MongoDB connection restored!');
+          console.log('MongoDB connection restored!');
         }
       } catch (err) {
         // Silently retry

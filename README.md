@@ -2,7 +2,7 @@
 
 A simple, community-driven consumer-to-consumer marketplace platform built with the MERN stack, designed exclusively for Finland. Users can buy and sell new products through direct contact with sellers.
 
-## 🚀 Features
+##  Features
 
 ### Core Features
 - **User Authentication**: Secure JWT-based authentication with any email address
@@ -30,7 +30,7 @@ A simple, community-driven consumer-to-consumer marketplace platform built with 
 - Health & Beauty
 - Other
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Backend
 - **Node.js** - Runtime environment
@@ -52,7 +52,7 @@ A simple, community-driven consumer-to-consumer marketplace platform built with 
 - **Axios** - HTTP client
 - **React Hot Toast** - Notifications
 
-## 📦 Installation & Setup
+##  Installation & Setup
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -115,7 +115,7 @@ A simple, community-driven consumer-to-consumer marketplace platform built with 
    npm run dev
    ```
 
-## 🔧 Configuration
+##  Configuration
 
 ### MongoDB Setup
 1. Create a MongoDB Atlas account
@@ -135,7 +135,7 @@ You can generate a secure JWT secret using:
 openssl rand -base64 48 | tr -d "=+/" | cut -c1-64
 ```
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 Mart/
@@ -162,7 +162,7 @@ Mart/
 └── README.md
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 ### Deploy to Render
 
@@ -186,7 +186,7 @@ Mart/
 
 **Important**: After setting `VITE_API_URL`, you must **clear build cache & redeploy** for changes to take effect.
 
-## 🔐 Security Features
+##  Security Features
 
 - JWT-based authentication
 - Password hashing with bcrypt
@@ -197,7 +197,7 @@ Mart/
 - File upload validation (images only, 5MB max)
 - Admin-only routes protection
 
-## 📱 API Endpoints
+##  API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - User registration (any email)
@@ -281,7 +281,7 @@ lsof -ti:5173 | xargs kill -9
 - Verify `FRONTEND_URL` in backend matches your frontend URL
 - Check backend CORS configuration includes your frontend origin
 
-## 📄 Pages
+##  Pages
 
 ### Public Pages
 - Home
@@ -306,16 +306,16 @@ lsof -ti:5173 | xargs kill -9
 - Admin Products
 - Admin Users
 
-## 🆘 Support
+##  Support
 
 For support, email **support@omart.fi** or create an issue in the repository.
 
-## 📝 License
+##  License
 
 This project is licensed under the MIT License.
 
 ---
 
-**Built with ❤️ for the Finland community**
+**Built with love for the Finland community**
 
-**© 2025 O Mart. All rights reserved.**
+**© 2026 O Mart. All rights reserved.**

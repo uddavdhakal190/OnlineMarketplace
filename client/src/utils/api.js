@@ -4,14 +4,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 // Debug: Log API URL in development
 if (import.meta.env.DEV) {
-  console.log('🔗 API Base URL:', API_BASE_URL)
-  console.log('🔗 VITE_API_URL env var:', import.meta.env.VITE_API_URL || 'NOT SET')
+  console.log(' API Base URL:', API_BASE_URL)
+  console.log(' VITE_API_URL env var:', import.meta.env.VITE_API_URL || 'NOT SET')
 }
 
 // Warn if using default URL in production
 if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
-  console.error('⚠️ WARNING: VITE_API_URL is not set! Using default localhost URL.')
-  console.error('⚠️ Please set VITE_API_URL environment variable in Render dashboard.')
+  console.error(' WARNING: VITE_API_URL is not set! Using default localhost URL.')
+  console.error(' Please set VITE_API_URL environment variable in Render dashboard.')
 }
 
 export const api = axios.create({

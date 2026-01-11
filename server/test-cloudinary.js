@@ -16,13 +16,13 @@ console.log('API Secret:', process.env.CLOUDINARY_API_SECRET ? 'Set (hidden)' : 
 // Test connection
 cloudinary.api.ping()
   .then(result => {
-    console.log('\n✅ Cloudinary connection successful!');
+    console.log('\n Cloudinary connection successful!');
     console.log('Status:', result.status);
     console.log('\nYour Cloudinary is configured correctly!');
     console.log('You can now upload images to your products.');
   })
   .catch(error => {
-    console.error('\n❌ Cloudinary connection failed!');
+    console.error('\n Cloudinary connection failed!');
     console.error('Error:', error.message || 'Unknown error');
     console.error('Error details:', error);
     
