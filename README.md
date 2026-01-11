@@ -135,7 +135,7 @@ You can generate a secure JWT secret using:
 openssl rand -base64 48 | tr -d "=+/" | cut -c1-64
 ```
 
-##  Project Structure
+## 📁 Project Structure
 
 ```
 Mart/
